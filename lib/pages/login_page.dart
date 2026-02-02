@@ -94,14 +94,24 @@ class LoginPageState extends State<LoginPage> {
                         animType: AnimType.scale,
                         title: 'Berhasil',
                         desc:'Login Berhasil',
-                        btnOkOnPress: (){
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DashboardPage()),
-                          );
+                        autoHide: const Duration(seconds: 1),
+                        onDismissCallback: (type) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DashboardPage()),
+                            );
                         },
                       ).show();
                       } else{
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Username atau Password Salah! Silahkan Coba Lagi'),
-                          backgroundColor: Colors.red,),);
+                        AwesomeDialog(
+                          context: context,
+                          dialogType: DialogType.error,
+                          animType: AnimType.bottomSlide,
+                          title: 'Gagal',
+                          desc: 'Username atau Password salah!',
+                          btnOkColor: Colors.red,
+                          btnOkOnPress: () {},
+                        ).show();
                       }
                     },
                     style: ElevatedButton.styleFrom(
