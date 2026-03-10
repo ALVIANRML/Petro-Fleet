@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class ActivityPage extends StatelessWidget {
+  const ActivityPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -9,7 +9,7 @@ class HomePage extends StatelessWidget {
       backgroundColor: const Color(0xFF1B1A1D),
       body: const Center(
         child: Text(
-          'Home Page',
+          'Activity Page',
           style: TextStyle(color: Colors.white),
         ),
       ),

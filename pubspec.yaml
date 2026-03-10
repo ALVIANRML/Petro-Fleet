@@ -34,6 +34,7 @@ dependencies:
   awesome_dialog: ^3.2.0
   cupertino_icons: ^1.0.8
   rive: 0.12.4
+  google_maps_flutter: ^2.5.0
 
 
 dev_dependencies:

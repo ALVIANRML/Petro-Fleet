@@ -27,7 +27,7 @@ class LoginPageState extends State<LoginPage> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/img/bg_login.jpg"),
+            image: AssetImage("assets/img/login_img.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -38,44 +38,71 @@ class LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Image.asset('assets/img/petrofleet.png', width: 400),
-                SizedBox(height: 26),
+                Column(
+                  children: [
+                    SizedBox(height: 120),
+                    Image.asset('assets/img/icon_login.png', width: 60),
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Petro Fleet",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        
+                      ],
+                    ),
+                    SizedBox(height: 50,)
+                  ],
+                ),
                 TextField(
                   controller: _usernameController,
 
-                  style: TextStyle(color: Colors.white,),
+                  style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Username',
-                    labelStyle: TextStyle(color: Colors.white70,),
+                    labelStyle: TextStyle(color: Colors.white70),
                     enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white54)
+                      borderSide: BorderSide(color: Colors.white54),
                     ),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(
-                      color: Colors.blue,     // border saat fokus
-                      width: 2,
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.blue, // border saat fokus
+                        width: 2,
+                      ),
                     ),
-                    ),
-
                   ),
                 ),
                 SizedBox(height: 26),
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscure,
-                  style: TextStyle(color: Colors.white,),
+                  style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.white70,),
-                      labelText: 'Passowrd',
-                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
-                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue, width: 2)),
-                      suffixIcon: IconButton(icon: Icon(
+                    labelStyle: TextStyle(color: Colors.white70),
+                    labelText: 'Passowrd',
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white54),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue, width: 2),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
                         _obscure ? Icons.visibility_off : Icons.visibility,
                         color: Colors.white70,
-                      ), onPressed: (){
+                      ),
+                      onPressed: () {
                         setState(() {
                           _obscure = !_obscure;
                         });
-                      })
+                      },
+                    ),
                   ),
                 ),
                 SizedBox(height: 26),
@@ -88,21 +115,23 @@ class LoginPageState extends State<LoginPage> {
                       final pass = _passwordController.text;
 
                       if (user == 'admin' && pass == '123') {
-                      AwesomeDialog(
-                        context: context,
-                        dialogType: DialogType.success,
-                        animType: AnimType.scale,
-                        title: 'Berhasil',
-                        desc:'Login Berhasil',
-                        autoHide: const Duration(seconds: 1),
-                        onDismissCallback: (type) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const DashboardPage()),
+                        AwesomeDialog(
+                          context: context,
+                          dialogType: DialogType.success,
+                          animType: AnimType.scale,
+                          title: 'Berhasil',
+                          desc: 'Login Berhasil',
+                          autoHide: const Duration(seconds: 1),
+                          onDismissCallback: (type) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const DashboardPage(),
+                              ),
                             );
-                        },
-                      ).show();
-                      } else{
+                          },
+                        ).show();
+                      } else {
                         AwesomeDialog(
                           context: context,
                           dialogType: DialogType.error,
@@ -130,16 +159,14 @@ class LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 26),
-                Center(
-                  child: Text(
-                    'Forgot Password?',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70),
-                  ),
-                ),
+                SizedBox(height: 16),
+                // Center(
+                //   child: Text(
+                //     'Forgot Password?',
+                //     textAlign: TextAlign.center,
+                //     style: const TextStyle(fontSize: 14, color: Colors.white70),
+                //   ),
+                // ),
               ],
             ),
           ),
