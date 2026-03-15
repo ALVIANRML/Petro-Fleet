@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'login_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -58,37 +59,130 @@ class ProfilePage extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-Container(
-  margin:const EdgeInsets.symmetric(vertical:6),
-decoration: BoxDecoration(
-  color: const Color(0xFFD9D9D9),
-  borderRadius: BorderRadius.circular(12)
-),
-           child: ListTile(
-              leading: const Icon(Icons.person, color: Colors.black, fontWeight: FontWeight.bold,),
-              title: const Text("Edit Profile",
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.arrow_forward,
-                  size: 16, color: Colors.black),
-              onTap: () {},
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD9D9D9),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: const Icon(
+                  Icons.person,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                title: const Text(
+                  "Edit Profile",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward,
+                  size: 16,
+                  color: Colors.black,
+                ),
+                onTap: () {},
+              ),
             ),
-),
-Container(
-  margin: const EdgeInsets.symmetric(vertical: 6),
-  decoration : BoxDecoration(
-    color: const Color(0xFFD9D9D9),
-    borderRadius: BorderRadius.circular(12)
-  ),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD9D9D9),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: const Icon(
+                  Icons.settings,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                title: const Text(
+                  "Settings",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward,
+                  size: 16,
+                  color: Colors.black,
+                ),
+                onTap: () {},
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD9D9D9),
+                borderRadius: BorderRadius.circular(12),
+              ),
 
-           child:  ListTile(
-              leading: const Icon(Icons.logout_outlined, color: Colors.red, fontWeight: FontWeight.bold),
-              title:
-                  const Text("Log Out", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.arrow_forward,
-                  size: 16, color: Colors.red),
-              onTap: () {},
+              child: ListTile(
+                leading: const Icon(
+                  Icons.logout_outlined,
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+                title: const Text(
+                  "Log Out",
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward,
+                  size: 16,
+                  color: Colors.red,
+                ),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text("Logout"),
+                        content: const Text("Are you sure you want to logout?"),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // tutup dialog
+                            },
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginPage(),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                            child: const Text(
+                              "Logout",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-),
           ],
         ),
       ),

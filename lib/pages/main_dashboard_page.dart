@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'HomePage.dart';
+import 'HomePageComponent/HomePage.dart';
 import 'profile_page.dart';
 import 'mapPage.dart';
-import 'activityPage.dart';
+import 'activity_page.dart';
 import 'fleetPage.dart';
 
 class DashboardPage extends StatefulWidget {
