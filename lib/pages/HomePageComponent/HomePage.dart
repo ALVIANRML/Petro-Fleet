@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import './line_chart.dart';
 import './stat_box.dart';
 import './bar_chart.dart';
+import './table_widget.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -52,6 +53,8 @@ class HomePage extends StatelessWidget {
             const BarChartWidget(),
             const SizedBox(height: 20),
             const LineCharetWidget(),
+            const SizedBox(height: 20),
+            const TableWidget(),
           ],
         ),
       ),

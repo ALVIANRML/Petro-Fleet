@@ -49,8 +49,18 @@ class BarChartWidget extends StatelessWidget {
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
                         const months = [
-                          'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-                          'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Des',
+                          'Jan',
+                          'Feb',
+                          'Mar',
+                          'Apr',
+                          'Mei',
+                          'Jun',
+                          'Jul',
+                          'Aug',
+                          'Sep',
+                          'Okt',
+                          'Nov',
+                          'Des',
                         ];
                         final idx = value.toInt();
                         if (idx >= 0 && idx < months.length) {
@@ -86,16 +96,28 @@ class BarChartWidget extends StatelessWidget {
                     ),
                   ),
                   topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       const months = [
-                        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-                        'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Des',
+                        'Jan',
+                        'Feb',
+                        'Mar',
+                        'Apr',
+                        'Mei',
+                        'Jun',
+                        'Jul',
+                        'Aug',
+                        'Sep',
+                        'Okt',
+                        'Nov',
+                        'Des',
                       ];
                       return BarTooltipItem(
                         '${months[group.x]}\n${rod.toY.toInt()}',
@@ -118,20 +140,19 @@ class BarChartWidget extends StatelessWidget {
   }
 
   List<BarChartGroupData> _buildBarGroups() {
-    // Ganti data ini sesuai kebutuhan
     const data = [
-      4500.0, // Jan
-      5000.0, // Feb
-      5500.0, // Mar
-      4800.0, // Apr
-      5200.0, // Mei
-      6000.0, // Jun
-      5800.0, // Jul
-      4200.0, // Aug
-      5600.0, // Sep
-      5900.0, // Okt
-      5300.0, // Nov
-      6200.0, // Des
+      4500.0,
+      5000.0,
+      5500.0,
+      4800.0,
+      5200.0,
+      6000.0,
+      5800.0,
+      4200.0,
+      5600.0,
+      5900.0,
+      5300.0,
+      6200.0,
     ];
 
     return List.generate(data.length, (index) {
