@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pertro_fleet/pages/ActivityPageComponent/activity_page.dart';
-import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_perjalanan.dart';
+import 'package:pertro_fleet/pages/main_dashboard_page.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_service.dart';
 
 class DataServicePage extends StatelessWidget {
@@ -16,7 +15,9 @@ class DataServicePage extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ActivityPage()),
+              MaterialPageRoute(
+                builder: (context) => const DashboardPage(initialIndex: 2),
+              ),
             );
           },
         ),

@@ -6,7 +6,8 @@ import 'ActivityPageComponent/activity_page.dart';
 import 'fleetPage.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  final int initialIndex;
+  const DashboardPage({super.key, this.initialIndex = 0});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -23,6 +24,11 @@ class _DashboardPageState extends State<DashboardPage> {
     ProfilePage(),
   ];
   @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_currentIndex],
