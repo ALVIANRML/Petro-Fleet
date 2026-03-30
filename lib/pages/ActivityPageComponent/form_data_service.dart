@@ -33,7 +33,7 @@ class _FormDataServiceState extends State<FormDataService> {
           ),
         ),
         title: const Text(
-          "Input Data Service",
+          "Edit Settings",
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,

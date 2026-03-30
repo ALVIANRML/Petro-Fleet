@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart';
+import '../login_page.dart';
+import 'package:pertro_fleet/pages/ProfilePageComponent/EditProfile_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -83,7 +84,14 @@ class ProfilePage extends StatelessWidget {
                   size: 16,
                   color: Colors.black,
                 ),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FormEditProfile(),
+                    ),
+                  );
+                },
               ),
             ),
             Container(

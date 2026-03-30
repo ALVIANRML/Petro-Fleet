@@ -46,7 +46,7 @@ class DataPerjalananPage extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  "Button +",
+                  "+ Tambah Data",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

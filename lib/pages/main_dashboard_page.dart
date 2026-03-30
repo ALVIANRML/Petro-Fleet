@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'HomePageComponent/HomePage.dart';
-import 'profile_page.dart';
+import 'ProfilePageComponent/profile_page.dart';
 import 'MapsPageComponent/mapPage.dart';
 import 'ActivityPageComponent/activity_page.dart';
 import 'fleetPage.dart';
