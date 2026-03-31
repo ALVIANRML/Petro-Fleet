@@ -37,6 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   rive: 0.12.4
   google_maps_flutter: ^2.5.0
+  firebase_core: ^4.6.0
+  firebase_auth: ^6.3.0
 
 dev_dependencies:
   flutter_test:

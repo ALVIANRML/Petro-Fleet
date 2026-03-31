@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "457228441333",
+    "project_id": "testing-44e7c",
+    "storage_bucket": "testing-44e7c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:457228441333:android:6ca7bc7a131437c84257bc",
+        "android_client_info": {
+          "package_name": "com.example.pertro_fleet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAfOLx9K2799ZfkC7OM4ipjOZOTHePCzI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

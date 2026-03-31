@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'main_dashboard_page.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,13 +11,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscure = true;
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -54,18 +55,16 @@ class LoginPageState extends State<LoginPage> {
                             color: Colors.white,
                           ),
                         ),
-                        
                       ],
                     ),
-                    SizedBox(height: 50,)
+                    SizedBox(height: 50),
                   ],
                 ),
                 TextField(
-                  controller: _usernameController,
-
+                  controller: _emailController,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'Username',
+                    labelText: 'Email',
                     labelStyle: TextStyle(color: Colors.white70),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.white54),
@@ -110,34 +109,39 @@ class LoginPageState extends State<LoginPage> {
                   width: double.infinity,
                   height: 49,
                   child: ElevatedButton(
-                    onPressed: () {
-                      final user = _usernameController.text;
-                      final pass = _passwordController.text;
+                    onPressed: () async {
+                      final email = _emailController.text.trim();
+                      final password = _passwordController.text.trim();
 
-                      if (user == 'admin' && pass == '123') {
-                        AwesomeDialog(
-                          context: context,
-                          dialogType: DialogType.success,
-                          animType: AnimType.scale,
-                          title: 'Berhasil',
-                          desc: 'Login Berhasil',
-                          autoHide: const Duration(seconds: 1),
-                          onDismissCallback: (type) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const DashboardPage(),
-                              ),
-                            );
-                          },
-                        ).show();
-                      } else {
+                      try {
+                        await FirebaseAuth.instance.signInWithEmailAndPassword(
+                          email: email,
+                          password: password,
+                        );
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DashboardPage(),
+                          ),
+                        );
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Login berhasil')),
+                        );
+                      } on FirebaseAuthException catch (e) {
+                        String message = 'Login Gagal';
+
+                        if (e.code == 'user-not-found') {
+                          message = 'user tidak ditemukan';
+                        } else if (e.code == 'wrong-password') {
+                          message = 'Password Salah';
+                        }
                         AwesomeDialog(
                           context: context,
                           dialogType: DialogType.error,
                           animType: AnimType.bottomSlide,
                           title: 'Gagal',
-                          desc: 'Username atau Password salah!',
+                          desc: message,
                           btnOkColor: Colors.red,
                           btnOkOnPress: () {},
                         ).show();
@@ -160,13 +164,6 @@ class LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 SizedBox(height: 16),
-                // Center(
-                //   child: Text(
-                //     'Forgot Password?',
-                //     textAlign: TextAlign.center,
-                //     style: const TextStyle(fontSize: 14, color: Colors.white70),
-                //   ),
-                // ),
               ],
             ),
           ),
