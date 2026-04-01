@@ -1,9 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
-class MapPage extends StatelessWidget {
+class MapPage extends StatefulWidget {
   const MapPage({super.key});
+
+  @override
+  State<MapPage> createState() => _MapPageState();
+}
+
+class _MapPageState extends State<MapPage> {
+  Future<Position> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('GPS tidak aktif');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Permission di tolak');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+  LatLng? currentLocation;
+  @override
+  void initState() {
+    super.initState();
+    _loadLocation();
+  }
+
+  void _loadLocation() async {
+    final pos = await _getCurrentLocation();
+
+    setState(() {
+      currentLocation = LatLng(pos.latitude, pos.longitude);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +53,7 @@ class MapPage extends StatelessWidget {
       appBar: AppBar(title: const Text("Map")),
       body: FlutterMap(
         options: MapOptions(
-          initialCenter: LatLng(3.595196, 98.672223),
+          initialCenter: currentLocation ?? LatLng(3.595196, 98.672223),
           initialZoom: 17,
         ),
         children: [
@@ -22,7 +64,7 @@ class MapPage extends StatelessWidget {
           MarkerLayer(
             markers: [
               Marker(
-                point: LatLng(3.595196, 98.672223),
+                point: currentLocation ?? LatLng(3.595196, 98.672223),
                 width: 40,
                 height: 40,
                 child: const Icon(
