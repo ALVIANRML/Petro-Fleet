@@ -38,7 +38,7 @@ class _FormDataServiceState extends State<FormDataService> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,9 +168,11 @@ class _FormDataServiceState extends State<FormDataService> {
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white54),
+      hintStyle: const TextStyle(
+        color: Color(0xFF000000),
+      ).copyWith(color: Color(0xFF000000).withOpacity(0.5)),
       filled: true,
-      fillColor: const Color(0xFF2C2C2C),
+      fillColor: const Color(0xFFD9D9D9),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide.none,
