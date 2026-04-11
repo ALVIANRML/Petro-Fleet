@@ -9,7 +9,7 @@ class TableWidget extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: const Color(0xFF0B4996),
         borderRadius: BorderRadius.circular(0),
         border: Border.all(color: Colors.white),
       ),

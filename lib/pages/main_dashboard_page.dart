@@ -34,7 +34,7 @@ class _DashboardPageState extends State<DashboardPage> {
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1B1A1D),
+        backgroundColor: const Color(0xFF0B4996),
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -76,17 +76,20 @@ class _DashboardPageState extends State<DashboardPage> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: isSelected ? Colors.white : const Color(0xFF23241F),
+        color: isSelected ? Colors.white : const Color(0xFF0A59BA),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: isSelected ? Colors.black : Colors.white),
+          Icon(
+            icon,
+            color: isSelected ? Colors.black : const Color(0xFF878783),
+          ),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.black : Colors.white,
+              color: isSelected ? Colors.black : const Color(0xFF878783),
               fontSize: 12,
             ),
           ),

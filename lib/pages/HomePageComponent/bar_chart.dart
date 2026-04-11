@@ -8,7 +8,7 @@ class BarChartWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.black,
+      color: const Color(0xFF0B4996),
       width: MediaQuery.of(context).size.width,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,7 +28,7 @@ class BarChartWidget extends StatelessWidget {
               BarChartData(
                 minY: 0,
                 maxY: 7000,
-                backgroundColor: Colors.black,
+                backgroundColor: const Color(0xFF0B4996),
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,

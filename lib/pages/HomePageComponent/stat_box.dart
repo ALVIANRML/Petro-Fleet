@@ -11,7 +11,7 @@ class StatBox extends StatelessWidget {
     return Container(
       height: 70,
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: const Color(0xFF0B4996),
         border: Border.all(color: Colors.white),
       ),
       child: Column(

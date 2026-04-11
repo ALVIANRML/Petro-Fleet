@@ -8,7 +8,7 @@ class ActivityPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1B1A1D),
+      backgroundColor: const Color(0xFF0B4996),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(

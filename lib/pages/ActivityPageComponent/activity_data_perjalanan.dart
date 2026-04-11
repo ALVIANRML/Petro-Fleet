@@ -2,13 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_perjalanan.dart';
 import 'package:pertro_fleet/pages/main_dashboard_page.dart';
 
-class DataPerjalananPage extends StatelessWidget {
+class DataPerjalananPage extends StatefulWidget {
   const DataPerjalananPage({super.key});
+
+  @override
+  DataPerjalananPageState createState() => DataPerjalananPageState();
+}
+
+class DataPerjalananPageState extends State<DataPerjalananPage> {
+  bool isTransitSelected = true;
+  DateTime? selectedDate;
+  Future<void> pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year + 5),
+    );
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1B1A1D),
+      backgroundColor: const Color(0xFF0B4996),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -24,7 +46,7 @@ class DataPerjalananPage extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: Color(0xFF1B1A1D),
+        backgroundColor: const Color(0xFF0B4996),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -37,7 +59,7 @@ class DataPerjalananPage extends StatelessWidget {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color(0xFF2C2C2C),
+                  backgroundColor: const Color(0xFF0A59BA),
                 ),
                 onPressed: () => Navigator.push(
                   context,
@@ -56,91 +78,188 @@ class DataPerjalananPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => pickDate(context),
+                child: Text(
+                  selectedDate == null
+                      ? "Pilih Tanggal"
+                      : "${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}",
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadiusGeometry.circular(5),
+                        ),
+                        backgroundColor: isTransitSelected
+                            ? Color(0xFFFF9D00)
+                            : const Color(0xFFFFCC7B),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isTransitSelected = true;
+                        });
+                      },
+                      child: Text(
+                        "In Transit",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 2),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isTransitSelected
+                            ? const Color(0xFF376D3F)
+                            : const Color(0xFF00DB21),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadiusGeometry.circular(5),
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isTransitSelected = false;
+                        });
+                      },
+                      child: Text(
+                        "Completed",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
 
+            Row(
+              children: const [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "Plat Kendaraan",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    "Tanggal Berangkat",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "Total Muatan",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    "Aksi",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(color: Colors.white),
             Expanded(
               child: ListView.builder(
                 itemCount: 10,
                 itemBuilder: (context, index) {
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 20),
-                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 0),
+                    padding: const EdgeInsets.all(0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2c2c2c),
+                      color: const Color(0xFF0B4996),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: index == 0
-                                    ? Colors.orange
-                                    : Colors.green,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
+                            Expanded(
+                              flex: 2,
                               child: Text(
-                                index == 0 ? "In Transit" : "Completed",
-                                style: const TextStyle(color: Colors.white),
+                                "BK 1546 TRE",
+                                style: TextStyle(color: Colors.white),
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                "13 Maret 2028",
 
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                "26 Liter",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    "BK 1542 TRE",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                    ),
+                                  if (isTransitSelected) ...const [
+                                    Icon(Icons.check, color: Colors.white),
+                                    SizedBox(width: 0),
+                                  ],
+                                  const Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.white,
                                   ),
                                 ],
                               ),
                             ),
-                            const Text(
-                              "13 Maret 2028",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            const SizedBox(width: 10),
-                            const Text(
-                              "26 Liter",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.white,
-                              size: 16,
-                            ),
                           ],
                         ),
-                        const SizedBox(height: 6),
 
-                        // 🔥 BARIS BAWAH
-                        Row(
-                          children: const [
-                            Expanded(
-                              child: Text(
-                                "Perawatan Mesin - Pertamina Aceh",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 5),
+
+                        // sub text bawah
+                        const Text(
+                          "Pertamina Medan – Pertamina Aceh",
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
                         ),
+
+                        const Divider(color: Colors.white),
                       ],
                     ),
                   );
