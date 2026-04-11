@@ -22,9 +22,9 @@ class _FormDataServiceState extends State<FormDataService> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1B1A1D),
+      backgroundColor: const Color(0xFF0B4996),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1B1A1D),
+        backgroundColor: const Color(0xFF0B4996),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.push(

@@ -8,7 +8,7 @@ class DataServicePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1B1A1D),
+      backgroundColor: const Color(0xFF0B4996),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -26,7 +26,7 @@ class DataServicePage extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: Color(0xFF1B1A1D),
+        backgroundColor: Color(0xFF0B4996),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -39,7 +39,7 @@ class DataServicePage extends StatelessWidget {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color(0xFF2C2C2C),
+                  backgroundColor: const Color(0xFF0A59BA),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -60,58 +60,116 @@ class DataServicePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-
+            Row(
+              children: const [
+                Expanded(
+                  flex: 4,
+                  child: Text(
+                    "Plat Kendaraan",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    "Tanggal ",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 4,
+                  child: Text(
+                    "Perbaikan",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "Aksi",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(color: Colors.white),
             Expanded(
               child: ListView.builder(
                 itemCount: 10,
                 itemBuilder: (context, index) {
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 20),
-                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 2),
+                    padding: const EdgeInsets.all(0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2c2c2c),
+                      color: const Color(0xFF0B4996),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       children: [
                         Row(
                           children: [
-                            const SizedBox(width: 10),
-
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                "BK 1542 TRE",
+                                // textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                "20 Maret 2026",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                "Ganti Oli",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    "BK 1542 TRE",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                    ),
+                                  const Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.white,
                                   ),
                                 ],
                               ),
                             ),
-                            const Text(
-                              "13 Maret 2028",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            const SizedBox(width: 10),
-                            const Text(
-                              "Ganti Oli",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.white,
-                              size: 16,
-                            ),
                           ],
                         ),
+                        const Divider(color: Colors.white),
                       ],
                     ),
                   );
