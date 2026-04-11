@@ -10,6 +10,8 @@ class MapPage extends StatefulWidget {
   State<MapPage> createState() => _MapPageState();
 }
 
+final MapController _mapController = MapController();
+
 class _MapPageState extends State<MapPage> {
   Future<Position> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -41,10 +43,12 @@ class _MapPageState extends State<MapPage> {
 
   void _loadLocation() async {
     final pos = await _getCurrentLocation();
-
+    final newLocation = LatLng(pos.latitude, pos.longitude);
     setState(() {
       currentLocation = LatLng(pos.latitude, pos.longitude);
     });
+
+    _mapController.move(newLocation, 17);
   }
 
   @override
@@ -52,6 +56,7 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("Map")),
       body: FlutterMap(
+        mapController: _mapController,
         options: MapOptions(
           initialCenter: currentLocation ?? LatLng(3.595196, 98.672223),
           initialZoom: 17,
