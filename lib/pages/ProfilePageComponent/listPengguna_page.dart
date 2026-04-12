@@ -1,39 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:pertro_fleet/pages/main_dashboard_page.dart';
-import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_service.dart';
+import 'package:pertro_fleet/pages/ProfilePageComponent/EditProfile_page.dart';
 
-class DataServicePage extends StatelessWidget {
-  const DataServicePage({super.key});
+class ListpenggunaPage extends StatelessWidget {
+  const ListpenggunaPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B4996),
+      backgroundColor: Color(0xFF0B4996),
       appBar: AppBar(
+        backgroundColor: Color(0xFF0B4996),
         leading: IconButton(
+          onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const DashboardPage(initialIndex: 2),
-              ),
-            );
-          },
         ),
         title: const Text(
-          "Data Perjalanan",
+          'List Pengguna',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: Color(0xFF0B4996),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const SizedBox(height: 10), // jarak dari atas
-
+            const SizedBox(height: 10),
             Align(
               alignment: Alignment.topLeft,
               child: Column(
@@ -66,7 +57,7 @@ class DataServicePage extends StatelessWidget {
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const FormDataService(),
+                          builder: (context) => const FormEditProfile(),
                         ),
                       ),
                       child: const Text(
@@ -88,7 +79,7 @@ class DataServicePage extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    "Plat Kendaraan",
+                    "Nama",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -99,18 +90,7 @@ class DataServicePage extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    "Tanggal ",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    "Perbaikan",
+                    "Jabatan ",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -150,7 +130,7 @@ class DataServicePage extends StatelessWidget {
                             Expanded(
                               flex: 2,
                               child: Text(
-                                "BK 1542 TRE",
+                                "ALVIAN",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -161,18 +141,7 @@ class DataServicePage extends StatelessWidget {
                             Expanded(
                               flex: 2,
                               child: Text(
-                                "20 Maret 2026",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                "Ganti Oli",
+                                "Ketua",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -185,10 +154,9 @@ class DataServicePage extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(
-                                    Icons.arrow_forward,
-                                    color: Colors.white,
-                                  ),
+                                  const Icon(Icons.delete, color: Colors.red),
+                                  SizedBox(width: 10),
+                                  const Icon(Icons.edit, color: Colors.white),
                                 ],
                               ),
                             ),

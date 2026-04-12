@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pertro_fleet/pages/ProfilePageComponent/listPengguna_page.dart';
 import '../login_page.dart';
-import 'package:pertro_fleet/pages/ProfilePageComponent/EditProfile_page.dart';
 import 'package:pertro_fleet/pages/ProfilePageComponent/Setting_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -10,7 +10,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1B1A1D),
+      backgroundColor: const Color(0xFF0B4996),
       body: Padding(
         padding: const EdgeInsets.only(top: 70, left: 20, right: 20),
         child: Column(
@@ -75,7 +75,7 @@ class ProfilePage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
                 title: const Text(
-                  "Edit Profile",
+                  "Data Pengguna",
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
@@ -90,7 +90,7 @@ class ProfilePage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const FormEditProfile(),
+                      builder: (context) => const ListpenggunaPage(),
                     ),
                   );
                 },

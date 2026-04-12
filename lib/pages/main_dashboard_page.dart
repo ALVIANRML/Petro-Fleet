@@ -3,7 +3,7 @@ import 'HomePageComponent/HomePage.dart';
 import 'ProfilePageComponent/profile_page.dart';
 import 'MapsPageComponent/mapPage.dart';
 import 'ActivityPageComponent/activity_page.dart';
-import 'fleetPage.dart';
+import 'FleetPageComponent/fleetPage.dart';
 
 class DashboardPage extends StatefulWidget {
   final int initialIndex;

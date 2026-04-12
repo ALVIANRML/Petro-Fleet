@@ -4,10 +4,10 @@ class FormEditProfile extends StatefulWidget {
   const FormEditProfile({super.key});
 
   @override
-  State<FormEditProfile> createState() => _ForEditProfileState();
+  State<FormEditProfile> createState() => _FormEditProfileState();
 }
 
-class _ForEditProfileState extends State<FormEditProfile> {
+class _FormEditProfileState extends State<FormEditProfile> {
   final TextEditingController namaController = TextEditingController();
   String? selectedPosisi;
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pertro_fleet/pages/ActivityPageComponent/activity_approval_data_perjalanan.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_perjalanan.dart';
+import 'package:pertro_fleet/pages/ActivityPageComponent/activity_detail_perjalanan.dart';
 import 'package:pertro_fleet/pages/main_dashboard_page.dart';
 
 class DataPerjalananPage extends StatefulWidget {
@@ -56,25 +58,50 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
 
             Align(
               alignment: Alignment.topLeft,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color(0xFF0A59BA),
-                ),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const FormDataPerjalanan(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: "Cari...",
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      filled: true,
+                      fillColor: const Color(0xFFFFFFFF),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(100),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    style: const TextStyle(color: Colors.white),
                   ),
-                ),
-                child: const Text(
-                  "+ Tambah Data",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+
+                  const SizedBox(height: 10),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        backgroundColor: const Color(0xFF0A59BA),
+                      ),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FormDataPerjalanan(),
+                        ),
+                      ),
+                      child: const Text(
+                        "+ Tambah Data",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
@@ -154,6 +181,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                   flex: 2,
                   child: Text(
                     "Plat Kendaraan",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -161,9 +189,10 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                   ),
                 ),
                 Expanded(
-                  flex: 3,
+                  flex: 2,
                   child: Text(
                     "Tanggal Berangkat",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -174,6 +203,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                   flex: 2,
                   child: Text(
                     "Total Muatan",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -181,7 +211,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                   ),
                 ),
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child: Text(
                     "Aksi",
                     textAlign: TextAlign.center,
@@ -213,6 +243,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                               flex: 2,
                               child: Text(
                                 "BK 1546 TRE",
+                                textAlign: TextAlign.center,
                                 style: TextStyle(color: Colors.white),
                               ),
                             ),
@@ -220,12 +251,13 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                               flex: 2,
                               child: Text(
                                 "13 Maret 2028",
-
+                                textAlign: TextAlign.center,
                                 style: TextStyle(color: Colors.white),
                               ),
                             ),
+                            SizedBox(width: 20),
                             Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Text(
                                 "26 Liter",
                                 textAlign: TextAlign.center,
@@ -235,15 +267,42 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                             Expanded(
                               flex: 2,
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  if (isTransitSelected) ...const [
-                                    Icon(Icons.check, color: Colors.white),
-                                    SizedBox(width: 0),
+                                  if (isTransitSelected) ...[
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ApprovalPerjalananPage(),
+                                          ),
+                                        );
+                                      },
+                                      child: Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ],
-                                  const Icon(
-                                    Icons.arrow_forward,
-                                    color: Colors.white,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              DetailPerjalananPage(
+                                                isTransitSelected:
+                                                    isTransitSelected,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Icon(
+                                      Icons.arrow_forward,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ],
                               ),
