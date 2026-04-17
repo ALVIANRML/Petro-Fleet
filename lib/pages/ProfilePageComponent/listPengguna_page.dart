@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:pertro_fleet/pages/ProfilePageComponent/EditProfile_page.dart';
+import 'package:pertro_fleet/pages/ProfilePageComponent/TambahDataPengguna_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ListpenggunaPage extends StatelessWidget {
+class ListpenggunaPage extends StatefulWidget {
   const ListpenggunaPage({super.key});
 
+  @override
+  State<ListpenggunaPage> createState() => _ListPenggunaPageState();
+}
+
+class _ListPenggunaPageState extends State<ListpenggunaPage> {
+  final TextEditingController searchController = TextEditingController();
+  String searchText = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,6 +39,12 @@ class ListpenggunaPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
+                    controller: searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        searchText = value.toLowerCase();
+                      });
+                    },
                     decoration: InputDecoration(
                       hintText: "Cari...",
                       hintStyle: const TextStyle(color: Colors.grey),
@@ -42,7 +56,7 @@ class ListpenggunaPage extends StatelessWidget {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                   ),
 
                   const SizedBox(height: 10),
@@ -57,7 +71,7 @@ class ListpenggunaPage extends StatelessWidget {
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const FormEditProfile(),
+                          builder: (context) => const FormAddProfile(),
                         ),
                       ),
                       child: const Text(
@@ -101,7 +115,7 @@ class ListpenggunaPage extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    "Aksi",
+                    "Email",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -113,58 +127,88 @@ class ListpenggunaPage extends StatelessWidget {
             ),
             const Divider(color: Colors.white),
             Expanded(
-              child: ListView.builder(
-                itemCount: 10,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 2),
-                    padding: const EdgeInsets.all(0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0B4996),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text("Data kosong"));
+                  }
+
+                  var data = snapshot.data!.docs;
+
+                  var filteredData = data.where((doc) {
+                    var user = doc.data() as Map<String, dynamic>;
+
+                    String nama = (user['nama'] ?? "").toLowerCase();
+                    String email = (user['email'] ?? "").toLowerCase();
+                    String jabatan = (user['jabatan'] ?? "").toLowerCase();
+
+                    return nama.contains(searchText) ||
+                        email.contains(searchText) ||
+                        jabatan.contains(searchText);
+                  }).toList();
+
+                  return ListView.builder(
+                    itemCount: filteredData.length,
+                    itemBuilder: (context, index) {
+                      var user =
+                          filteredData[index].data() as Map<String, dynamic>;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0B4996),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
                           children: [
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                "ALVIAN",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    user['nama'] ?? "-",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                "Ketua",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    user['jabatan'] ?? "-",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    user['email'] ?? "-",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            Expanded(
-                              flex: 2,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.delete, color: Colors.red),
-                                  SizedBox(width: 10),
-                                  const Icon(Icons.edit, color: Colors.white),
-                                ],
-                              ),
-                            ),
+                            const Divider(color: Colors.white),
                           ],
                         ),
-                        const Divider(color: Colors.white),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),
