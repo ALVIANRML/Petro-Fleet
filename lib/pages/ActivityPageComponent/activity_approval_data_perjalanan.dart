@@ -189,6 +189,7 @@ class _ApprovalPerjalananPageState extends State<ApprovalPerjalananPage> {
       hintText: hint,
       hintStyle: const TextStyle(
         color: Color(0xFF000000),
+      // ignore: deprecated_member_use
       ).copyWith(color: Color(0xFF000000).withOpacity(0.5)),
       filled: true,
       fillColor: const Color(0xFFD9D9D9),

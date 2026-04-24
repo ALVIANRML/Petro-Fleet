@@ -78,6 +78,7 @@ class ActivityCard extends StatelessWidget {
               fit: BoxFit.cover,
               cacheWidth: 600,
             ),
+            // ignore: deprecated_member_use
             Container(height: 150, color: Colors.white.withOpacity(0.6)),
 
             Positioned(

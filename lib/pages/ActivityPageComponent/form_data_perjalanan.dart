@@ -1,23 +1,141 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:pertro_fleet/pages/ActivityPageComponent/activity_data_perjalanan.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:pertro_fleet/pages/fungsi/RupiahInputFormatter.dart';
 
 class FormDataPerjalanan extends StatefulWidget {
-  const FormDataPerjalanan({super.key});
+  final String? docId;
+  final String? kendaraanId;
+  final Map<String, dynamic>? data;
+  const FormDataPerjalanan({
+    super.key,
+    this.docId,
+    this.kendaraanId,
+    this.data,
+  });
 
   @override
   State<FormDataPerjalanan> createState() => _FormDataPerjalananState();
 }
 
 class _FormDataPerjalananState extends State<FormDataPerjalanan> {
+  bool get isEdit => widget.docId != null;
   String? selectedPlat;
-  final TextEditingController jenisServiceController = TextEditingController();
-  final TextEditingController biayaController = TextEditingController();
-  final TextEditingController odometerController = TextEditingController();
-  final TextEditingController ddController = TextEditingController();
-  final TextEditingController mmController = TextEditingController();
-  final TextEditingController yyyyController = TextEditingController();
+  final TextEditingController muatanController = TextEditingController();
+  final TextEditingController lokasiAwalController = TextEditingController();
+  final TextEditingController tujuanMuatanController = TextEditingController();
+  final TextEditingController upahDriverController = TextEditingController();
+  final TextEditingController uangBensinController = TextEditingController();
+  final TextEditingController tanggalBerangkatController =
+      TextEditingController();
+  final rupiahFormat = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
 
-  final List<String> platList = ["BK 1542 TRE", "BK 2000 ABC", "BK 3321 XYZ"];
+  Stream<List<String>> getPlatKendaraan() {
+    return FirebaseFirestore.instance.collection('kendaraan').snapshots().map((
+      snapshot,
+    ) {
+      return snapshot.docs.map((doc) {
+        return doc['plat_kendaraan'] as String;
+      }).toList();
+    });
+  }
+
+  Future<void> submitFunction(BuildContext context) async {
+    if (selectedPlat == null ||
+        muatanController.text.isEmpty ||
+        lokasiAwalController.text.isEmpty ||
+        tujuanMuatanController.text.isEmpty ||
+        upahDriverController.text.isEmpty ||
+        uangBensinController.text.isEmpty ||
+        tanggalBerangkatController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Semua field wajib diisi")));
+      return;
+    }
+
+    try {
+      final data = {
+        'jumlah_muatan': int.parse(muatanController.text.replaceAll('.', '')),
+        'lokasi_awal': lokasiAwalController.text,
+        'tujuan_muatan': tujuanMuatanController.text,
+        'upah_driver': int.parse(upahDriverController.text.replaceAll('.', '')),
+        'uang_bensin': int.parse(uangBensinController.text.replaceAll('.', '')),
+        'tanggal': tanggalBerangkatController.text,
+      };
+
+      if (isEdit) {
+        // UPDATE
+        await FirebaseFirestore.instance
+            .collection('kendaraan')
+            .doc(widget.kendaraanId)
+            .collection('perjalanan')
+            .doc(widget.docId)
+            .update(data);
+      } else {
+        // ADD
+        await FirebaseFirestore.instance
+            .collection('kendaraan')
+            .doc(selectedPlat)
+            .collection('perjalanan')
+            .add({
+              ...data,
+              'created_at': FieldValue.serverTimestamp(),
+              'total_muatan_diterima': 0,
+              'tanggal_tiba': null,
+              'status': "in transit",
+            });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isEdit ? "Data berhasil diupdate" : "Data berhasil ditambahkan",
+          ),
+        ),
+      );
+
+      Future.delayed(const Duration(seconds: 1), () {
+        if (context.mounted) {
+          Navigator.pop(context, true);
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (isEdit && widget.data != null) {
+      final data = widget.data!;
+
+      selectedPlat = widget.kendaraanId;
+
+      muatanController.text = data['jumlah_muatan']?.toString() ?? '';
+
+      lokasiAwalController.text = data['lokasi_awal'] ?? '';
+
+      tujuanMuatanController.text = data['tujuan_muatan'] ?? '';
+
+      upahDriverController.text = data['upah_driver']?.toString() ?? '';
+
+      uangBensinController.text = data['uang_bensin']?.toString() ?? '';
+
+      tanggalBerangkatController.text = data['tanggal'] ?? '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,14 +145,11 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
         backgroundColor: const Color(0xFF0B4996),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DataPerjalananPage()),
-          ),
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Input Data Perjalanan",
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          isEdit ? "Edit Data Perjalanan" : "Input Data Perjalanan",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -46,92 +161,153 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
             // Plat Kendaraan
             const Text("Plat Kendaraan", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: selectedPlat,
-              dropdownColor: const Color(0xFF2C2C2C),
-              decoration: _inputDecoration("Pilih Plat Kendaraan"),
-              style: const TextStyle(color: Colors.white),
-              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-              items: platList.map((plat) {
-                return DropdownMenuItem(value: plat, child: Text(plat));
-              }).toList(),
-              onChanged: (val) => setState(() => selectedPlat = val),
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('kendaraan')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Text("Tidak ada data");
+                }
+                final platList = snapshot.data!.docs.map((doc) {
+                  return {
+                    'id': doc.id,
+                    'plat': doc['plat_kendaraan']?.toString().trim() ?? '-',
+                  };
+                }).toList();
+                return DropdownButtonFormField<String>(
+                  initialValue: platList.any((e) => e['id'] == selectedPlat)
+                      ? selectedPlat
+                      : null,
+                  dropdownColor: const Color(0xFFFFFFFF),
+                  decoration: _inputDecoration("Pilih Plat Kendaraan"),
+                  style: const TextStyle(color: Colors.black),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  items: platList.map((plat) {
+                    return DropdownMenuItem(
+                      value: plat['id'],
+                      child: Text(plat['plat'] ?? '-'),
+                    );
+                  }).toList(),
+                  onChanged: (val) => setState(() => selectedPlat = val),
+                );
+              },
             ),
             const SizedBox(height: 16),
 
-            // Jenis Service
-            const Text("Jenis Service", style: TextStyle(color: Colors.white)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: jenisServiceController,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("Masukkan Jenis Service"),
-            ),
-            const SizedBox(height: 16),
-
-            // Biaya Service
+            // Jumlah Muatan
             const Text(
-              "Biaya Service (Rp)",
+              "Jumlah Muatan (Liter)",
               style: TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 8),
             TextField(
-              controller: biayaController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("Masukkan Biaya Service (Rp)"),
-            ),
-            const SizedBox(height: 16),
-
-            // Odometer
-            const Text(
-              "Odometer saat Servis",
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: odometerController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration("Masukkan Odometer saat Servis"),
-            ),
-            const SizedBox(height: 16),
-
-            // Tanggal Service
-            const Text(
-              "Tanggal Service",
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: ddController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: _inputDecoration("DD"),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: mmController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: _inputDecoration("MM"),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: yyyyController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: _inputDecoration("YYYY"),
-                  ),
-                ),
+              controller: muatanController,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                RupiahInputFormatter(),
               ],
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.black),
+              decoration: _inputDecoration(
+                "Masukkan Jumlah Muatan",
+              ).copyWith(suffixText: "L"),
+            ),
+            const SizedBox(height: 16),
+
+            // lokasi awal muatan
+            const Text(
+              "Lokasi Awal Muatan",
+              style: TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: lokasiAwalController,
+              style: const TextStyle(color: Colors.black),
+              decoration: _inputDecoration("Masukkan Lokasi Awal Muatan"),
+            ),
+            const SizedBox(height: 16),
+
+            // Tujuan muatan
+            const Text("Tujuan Muatan", style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: tujuanMuatanController,
+              style: const TextStyle(color: Colors.black),
+              decoration: _inputDecoration("Masukkan Tujuan Muatan"),
+            ),
+            const SizedBox(height: 16),
+
+            // Upah Driver
+            const Text(
+              "Upah Driver (Rp)",
+              style: TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: upahDriverController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [RupiahInputFormatter()],
+              style: const TextStyle(color: Colors.black),
+              decoration: _inputDecoration("Masukkan Upah Driver (Rp)")
+                  .copyWith(
+                    prefixText: "Rp ",
+                    prefixStyle: const TextStyle(color: Colors.black),
+                  ),
+            ),
+            const SizedBox(height: 16),
+
+            // Uang Bensin
+            const Text(
+              "Uang Bensin (Rp)",
+              style: TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: uangBensinController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [RupiahInputFormatter()],
+              style: const TextStyle(color: Colors.black),
+              decoration: _inputDecoration("Masukkan Uang Bensin (Rp)")
+                  .copyWith(
+                    prefixText: "Rp ",
+                    prefixStyle: const TextStyle(color: Colors.black),
+                  ),
+            ),
+            const SizedBox(height: 16),
+
+            // Tanggal Berangkat
+            const Text(
+              "Tanggal Keberangkatan",
+              style: TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+
+            TextField(
+              readOnly: true,
+              controller: tanggalBerangkatController,
+              style: const TextStyle(color: Colors.black),
+              decoration: _inputDecoration("Pilih Tanggal"),
+              onTap: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+
+                if (pickedDate != null) {
+                  setState(() {
+                    tanggalBerangkatController.text = DateFormat(
+                      'dd-MM-yyyy',
+                    ).format(pickedDate);
+                  });
+                }
+              },
             ),
             const SizedBox(height: 30),
 
@@ -146,11 +322,35 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: () {
-                  // logika simpan data
+                onPressed: () async {
+                  final confirm = await showDialog(
+                    context: context,
+                    builder: (dialogContext) => AlertDialog(
+                      title: const Text("Konfirmasi"),
+                      content: Text(
+                        isEdit
+                            ? "Apakah anda yakin ingin mengubah data?"
+                            : "Apakah anda yakin ingin menambahkan data?",
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext, false),
+                          child: const Text("Batal"),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext, true),
+                          child: const Text("Ya"),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true) {
+                    submitFunction(context);
+                  }
                 },
-                child: const Text(
-                  "Tambahkan Data",
+                child: Text(
+                  isEdit ? "Update Data" : "Tambahkan Data",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

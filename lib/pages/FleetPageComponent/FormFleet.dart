@@ -78,9 +78,13 @@ class _FormFleetPageState extends State<FormFleetPage> {
         'total_jam_operasi': 0,
         'created_at': Timestamp.now(),
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Data Berhasil Ditambahkan")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Data berhasil ditambahkan")),
+      );
+
+      Future.delayed(const Duration(seconds: 1), () {
+        Navigator.pop(context);
+      });
     } catch (e) {
       {
         print("Error $e");
