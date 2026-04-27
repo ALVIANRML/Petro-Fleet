@@ -131,6 +131,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
     final upahDriver = widget.data['upah_driver'] ?? 0;
     final uangBensin = widget.data['uang_bensin'] ?? 0;
     final jumlahMuatan = widget.data['jumlah_muatan'] ?? 0;
+    final jumlahMuatanDiterima = widget.data['total_muatan_diterima'] ?? 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B4996),
@@ -227,8 +228,8 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _label('Total Muatan:'),
-                      _value("$jumlahMuatan L"),
+                      _label('Total Muatan (L):'),
+                      _value("${formatRupiah(jumlahMuatan)} L"),
                     ],
                   ),
                 ),
@@ -238,8 +239,8 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _label('Total Muatan:'),
-                        _value("$jumlahMuatan L"),
+                        _label('Total Muatan Diterima (L):'),
+                        _value("${formatRupiah(jumlahMuatanDiterima)} L"),
                       ],
                     ),
                   ),
@@ -379,7 +380,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
       hintText: hint,
       hintStyle: const TextStyle(
         color: Color(0xFF000000),
-      // ignore: deprecated_member_use
+        // ignore: deprecated_member_use
       ).copyWith(color: Color(0xFF000000).withOpacity(0.5)),
       filled: true,
       fillColor: const Color(0xFFD9D9D9),

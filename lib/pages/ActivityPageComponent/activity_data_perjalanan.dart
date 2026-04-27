@@ -97,7 +97,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                 });
               },
               decoration: InputDecoration(
-                hintText: "Cari plat kendaraan...",
+                hintText: "Cari....",
                 hintStyle: const TextStyle(color: Colors.grey),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 filled: true,
@@ -320,15 +320,46 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                         final plat = (data['plat_kendaraan'] ?? '')
                             .toString()
                             .toLowerCase();
-                        final tanggal = (data['tanggal'] ?? '').toString();
 
                         final matchSearch =
                             searchQuery.isEmpty || plat.contains(searchQuery);
 
                         final matchDate =
                             selectedDate == null ||
-                            tanggal ==
-                                "${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}";
+                            (() {
+                              final tglRaw = data['tanggal'];
+
+                              // ✅ kalau Timestamp
+                              if (tglRaw is Timestamp) {
+                                final d = tglRaw.toDate();
+
+                                return d.day == selectedDate!.day &&
+                                    d.month == selectedDate!.month &&
+                                    d.year == selectedDate!.year;
+                              }
+
+                              // ✅ kalau String (format: 27-4-2026)
+                              if (tglRaw is String) {
+                                try {
+                                  final parts = tglRaw.split('-');
+                                  if (parts.length == 3) {
+                                    final d = DateTime(
+                                      int.parse(parts[2]), // year
+                                      int.parse(parts[1]), // month
+                                      int.parse(parts[0]), // day
+                                    );
+
+                                    return d.day == selectedDate!.day &&
+                                        d.month == selectedDate!.month &&
+                                        d.year == selectedDate!.year;
+                                  }
+                                } catch (e) {
+                                  return false;
+                                }
+                              }
+
+                              return false;
+                            })();
 
                         return matchSearch && matchDate;
                       }).toList()..sort((a, b) {
