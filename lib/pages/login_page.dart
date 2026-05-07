@@ -118,24 +118,34 @@ class LoginPageState extends State<LoginPage> {
                           email: email,
                           password: password,
                         );
+
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Login berhasil')),
+                        );
+
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: (_) => const DashboardPage(),
                           ),
                         );
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Login berhasil')),
-                        );
                       } on FirebaseAuthException catch (e) {
                         String message = 'Login Gagal';
 
                         if (e.code == 'user-not-found') {
-                          message = 'user tidak ditemukan';
+                          message = 'User tidak ditemukan';
                         } else if (e.code == 'wrong-password') {
-                          message = 'Password Salah';
+                          message = 'Password salah';
+                        } else if (e.code == 'invalid-email') {
+                          message = 'Format email tidak valid';
+                        } else if (e.code == 'invalid-credential') {
+                          message = 'Email atau password salah';
                         }
+
+                        if (!mounted) return;
+
                         AwesomeDialog(
                           context: context,
                           dialogType: DialogType.error,

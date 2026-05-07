@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_perjalanan.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/activity_detail_perjalanan.dart';
+import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_perjalanan.dart';
 import 'package:pertro_fleet/pages/main_dashboard_page.dart';
 
 class DataPerjalananPage extends StatefulWidget {
@@ -12,9 +12,47 @@ class DataPerjalananPage extends StatefulWidget {
 }
 
 class DataPerjalananPageState extends State<DataPerjalananPage> {
-  bool isTransitSelected = true;
+  /// 0 = in_transit, 1 = on_trip, 2 = completed
+  int selectedTab = 0;
   DateTime? selectedDate;
   String searchQuery = '';
+
+  String get statusTarget {
+    switch (selectedTab) {
+      case 0:
+        return 'in_transit';
+      case 1:
+        return 'on_trip';
+      case 2:
+        return 'completed';
+      default:
+        return 'in_transit';
+    }
+  }
+
+  String formatTanggal(dynamic value) {
+    if (value == null) return '-';
+
+    if (value is Timestamp) {
+      final date = value.toDate();
+
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      final year = date.year.toString();
+
+      return '$day-$month-$year';
+    }
+
+    return value.toString();
+  }
+
+  String formatAngka(dynamic value) {
+    final num = int.tryParse(value.toString()) ?? 0;
+    return num.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    );
+  }
 
   Future<void> pickDate(BuildContext context) async {
     final now = DateTime.now();
@@ -31,10 +69,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
     }
   }
 
-  // Ambil semua perjalanan dari setiap kendaraan secara manual
   Future<List<Map<String, dynamic>>> getPerjalananData() async {
-    final statusTarget = isTransitSelected ? 'in transit' : 'completed';
-
     final kendaraanSnapshot = await FirebaseFirestore.instance
         .collection('kendaraan')
         .get();
@@ -42,7 +77,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
     final List<Map<String, dynamic>> allData = [];
 
     for (final kendaraan in kendaraanSnapshot.docs) {
-      final plat = kendaraan['plat_kendaraan']; // ✅ ambil dari kendaraan
+      final plat = kendaraan['plat_kendaraan'];
 
       final perjalananSnapshot = await kendaraan.reference
           .collection('perjalanan')
@@ -53,7 +88,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
         allData.add({
           'id': doc.id,
           'kendaraan_id': kendaraan.id,
-          'plat_kendaraan': plat, // ✅ TAMBAHKAN INI
+          'plat_kendaraan': plat,
           ...doc.data(),
         });
       }
@@ -127,9 +162,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                       builder: (context) => const FormDataPerjalanan(),
                     ),
                   ).then((result) {
-                    if (result == true) {
-                      setState(() {}); // 🔥 reload data
-                    }
+                    if (result == true) setState(() {});
                   });
                 },
                 child: const Text(
@@ -178,57 +211,28 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
 
             const SizedBox(height: 10),
 
-            // Toggle In Transit / Completed
+            // ── Toggle 3 tab: In Transit | On Trip | Completed ──
             Row(
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      backgroundColor: isTransitSelected
-                          ? const Color(0xFFFF9D00)
-                          : const Color(0xFFFFCC7B),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        isTransitSelected = true;
-                      });
-                    },
-                    child: const Text(
-                      "In Transit",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                _tabButton(
+                  label: 'In Transit',
+                  index: 0,
+                  activeColor: const Color(0xFFFF9D00),
+                  inactiveColor: const Color(0xFFB87300),
                 ),
                 const SizedBox(width: 2),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: !isTransitSelected
-                          ? const Color(0xFF00DB21)
-                          : const Color(0xFF376D3F),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        isTransitSelected = false;
-                      });
-                    },
-                    child: const Text(
-                      "Completed",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                _tabButton(
+                  label: 'On Trip',
+                  index: 1,
+                  activeColor: const Color(0xFF3A8BF0),
+                  inactiveColor: const Color(0xFF1A4A80),
+                ),
+                const SizedBox(width: 2),
+                _tabButton(
+                  label: 'Completed',
+                  index: 2,
+                  activeColor: const Color(0xFF00DB21),
+                  inactiveColor: const Color(0xFF376D3F),
                 ),
               ],
             ),
@@ -314,13 +318,11 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                     );
                   }
 
-                  // Filter berdasarkan search query dan tanggal
                   final docs =
                       snapshot.data!.where((data) {
                         final plat = (data['plat_kendaraan'] ?? '')
                             .toString()
                             .toLowerCase();
-
                         final matchSearch =
                             searchQuery.isEmpty || plat.contains(searchQuery);
 
@@ -329,26 +331,22 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                             (() {
                               final tglRaw = data['tanggal'];
 
-                              // ✅ kalau Timestamp
                               if (tglRaw is Timestamp) {
                                 final d = tglRaw.toDate();
-
                                 return d.day == selectedDate!.day &&
                                     d.month == selectedDate!.month &&
                                     d.year == selectedDate!.year;
                               }
 
-                              // ✅ kalau String (format: 27-4-2026)
                               if (tglRaw is String) {
                                 try {
                                   final parts = tglRaw.split('-');
                                   if (parts.length == 3) {
                                     final d = DateTime(
-                                      int.parse(parts[2]), // year
-                                      int.parse(parts[1]), // month
-                                      int.parse(parts[0]), // day
+                                      int.parse(parts[2]),
+                                      int.parse(parts[1]),
+                                      int.parse(parts[0]),
                                     );
-
                                     return d.day == selectedDate!.day &&
                                         d.month == selectedDate!.month &&
                                         d.year == selectedDate!.year;
@@ -365,10 +363,8 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                       }).toList()..sort((a, b) {
                         final aTime = a['created_at'] as Timestamp?;
                         final bTime = b['created_at'] as Timestamp?;
-
                         if (aTime == null || bTime == null) return 0;
-
-                        return bTime.compareTo(aTime); // 🔥 terbaru di atas
+                        return bTime.compareTo(aTime);
                       });
 
                   if (docs.isEmpty) {
@@ -385,8 +381,8 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                     itemBuilder: (context, index) {
                       final data = docs[index];
                       final platKendaraan = data['plat_kendaraan'] ?? '-';
-                      final tanggal = data['tanggal'] ?? '-';
-                      final jumlahMuatan = data['jumlah_muatan'] ?? 0;
+                      final tanggal = formatTanggal(data['tanggal']);
+                      final jumlahMuatan = data['total_jumlah_muatan'] ?? 0;
                       final lokasi = data['lokasi_awal'] ?? '-';
                       final tujuan = data['tujuan_muatan'] ?? '-';
                       final docId = data['id'] ?? '';
@@ -422,7 +418,7 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                                 Expanded(
                                   flex: 2,
                                   child: Text(
-                                    "$jumlahMuatan L",
+                                    "${formatAngka(jumlahMuatan)} Kg",
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(color: Colors.white),
                                   ),
@@ -440,17 +436,13 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
                                         MaterialPageRoute(
                                           builder: (context) =>
                                               DetailPerjalananPage(
-                                                isTransitSelected:
-                                                    isTransitSelected,
+                                                currentStatus: statusTarget,
                                                 docId: docId,
                                                 kendaraanId: kendaraanId,
                                                 data: data,
                                               ),
                                         ),
-                                      ).then((_) {
-                                        // Refresh data setelah kembali dari detail
-                                        setState(() {});
-                                      });
+                                      ).then((_) => setState(() {}));
                                     },
                                   ),
                                 ),
@@ -474,6 +466,37 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tabButton({
+    required String label,
+    required int index,
+    required Color activeColor,
+    required Color inactiveColor,
+  }) {
+    final isActive = selectedTab == index;
+    return Expanded(
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+          backgroundColor: isActive ? activeColor : inactiveColor,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+        ),
+        onPressed: () {
+          setState(() {
+            selectedTab = index;
+          });
+        },
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
         ),
       ),
     );

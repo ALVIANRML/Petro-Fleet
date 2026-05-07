@@ -8,6 +8,7 @@ class FormDataService extends StatefulWidget {
   final String? docId;
   final String? kendaraanId;
   final Map<String, dynamic>? data;
+
   const FormDataService({super.key, this.docId, this.kendaraanId, this.data});
 
   @override
@@ -15,33 +16,65 @@ class FormDataService extends StatefulWidget {
 }
 
 class _FormDataServiceState extends State<FormDataService> {
+  DateTime? selectedTanggalService;
+
   String? selectedPlat;
   String? selectedKondisiRem;
   String? selectedKondisiBaterai;
   String? selectedKondisiBan;
+  String? selectedFuelConsumption;
+  String? selectedOilQuality;
+  String? selectedTingkatGetaran;
   String? selectedKecelakaan;
+
   final TextEditingController jenisServiceController = TextEditingController();
   final TextEditingController biayaController = TextEditingController();
-  final TextEditingController odometerController = TextEditingController();
   final TextEditingController tanggalServiceController =
       TextEditingController();
   final TextEditingController catatanController = TextEditingController();
 
-  final List<String> platList = ["BK 1542 TRE", "BK 2000 ABC", "BK 3321 XYZ"];
   final List<String> kondisiKomponen = ["Baik", "Sedang", "Buruk"];
   final List<String> kecelakaan = ["Ya", "Tidak"];
+
   bool get isEdit => widget.docId != null;
+
+  int kondisiToInt(String? kondisi) {
+    switch (kondisi) {
+      case 'Baik':
+        return 100;
+      case 'Sedang':
+        return 50;
+      case 'Buruk':
+        return 0;
+      default:
+        return 0;
+    }
+  }
+
+  String intToKondisi(dynamic nilai) {
+    if (nilai == 100) return 'Baik';
+    if (nilai == 50) return 'Sedang';
+    if (nilai == 0) return 'Buruk';
+
+    // Antisipasi kalau data lama masih bentuk String
+    if (nilai == 'Baik') return 'Baik';
+    if (nilai == 'Sedang') return 'Sedang';
+    if (nilai == 'Buruk') return 'Buruk';
+
+    return '';
+  }
 
   Future<void> submitFunction(BuildContext context) async {
     if (selectedPlat == null ||
         selectedKondisiBan == null ||
         selectedKondisiBaterai == null ||
         selectedKondisiRem == null ||
+        selectedFuelConsumption == null ||
+        selectedOilQuality == null ||
+        selectedTingkatGetaran == null ||
         jenisServiceController.text.isEmpty ||
         biayaController.text.isEmpty ||
-        odometerController.text.isEmpty ||
-        catatanController.text.isEmpty ||
-        tanggalServiceController.text.isEmpty) {
+        selectedTanggalService == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Semua field wajib diisi")));
@@ -50,17 +83,19 @@ class _FormDataServiceState extends State<FormDataService> {
 
     try {
       final data = {
-        'tanggal_perbaikan': tanggalServiceController.text,
+        'tanggal_perbaikan': Timestamp.fromDate(selectedTanggalService!),
         'jenis_kerusakan': jenisServiceController.text,
         'catatan_kerusakan': catatanController.text,
         'biaya_service': int.parse(biayaController.text.replaceAll('.', '')),
-        'odometer_service': int.parse(
-          odometerController.text.replaceAll('.', ''),
-        ),
         'kecelakaan': selectedKecelakaan,
-        'kondisi_ban': selectedKondisiBan,
-        'kondisi_rem': selectedKondisiRem,
-        'kondisi_baterai': selectedKondisiBaterai,
+
+        // Data untuk ML / kondisi kendaraan
+        'tire_preasure': kondisiToInt(selectedKondisiBan),
+        'brake_condition': kondisiToInt(selectedKondisiRem),
+        'battery_status': kondisiToInt(selectedKondisiBaterai),
+        'fuel_consumption': kondisiToInt(selectedFuelConsumption),
+        'oil_quality': kondisiToInt(selectedOilQuality),
+        'vibration_level': kondisiToInt(selectedTingkatGetaran),
       };
 
       if (isEdit) {
@@ -71,13 +106,13 @@ class _FormDataServiceState extends State<FormDataService> {
             .doc(widget.docId)
             .update(data);
       } else {
-        // ADD
         await FirebaseFirestore.instance
             .collection('kendaraan')
             .doc(selectedPlat)
             .collection('service')
             .add({...data, 'created_at': FieldValue.serverTimestamp()});
       }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -118,19 +153,42 @@ class _FormDataServiceState extends State<FormDataService> {
       selectedPlat = widget.kendaraanId;
 
       biayaController.text = data['biaya_service']?.toString() ?? '';
-      odometerController.text = data['odometer_service']?.toString() ?? '';
-
       jenisServiceController.text = data['jenis_kerusakan'] ?? '';
       catatanController.text = data['catatan_kerusakan'] ?? '';
-      selectedKecelakaan = data['kecelakaan'] ?? '';
-      selectedKondisiBan = data['kondisi_ban'] ?? '';
-      selectedKondisiRem = data['kondisi_rem'] ?? '';
-      selectedKondisiBaterai = data['kondisi_baterai'] ?? '';
 
-      tanggalServiceController.text = data['tanggal_perbaikan'] ?? '';
+      selectedKecelakaan = data['kecelakaan'];
+
+      // Pakai field yang sekarang disimpan ke Firestore
+      selectedKondisiBan = intToKondisi(data['tire_preasure']);
+      selectedKondisiRem = intToKondisi(data['brake_condition']);
+      selectedKondisiBaterai = intToKondisi(data['battery_status']);
+      selectedFuelConsumption = intToKondisi(data['fuel_consumption']);
+      selectedOilQuality = intToKondisi(data['oil_quality']);
+      selectedTingkatGetaran = intToKondisi(data['vibration_level']);
+
+      final tanggal = data['tanggal_perbaikan'];
+
+      if (tanggal is Timestamp) {
+        selectedTanggalService = tanggal.toDate();
+        tanggalServiceController.text = DateFormat(
+          'dd-MM-yyyy',
+        ).format(selectedTanggalService!);
+      } else if (tanggal is String) {
+        tanggalServiceController.text = tanggal;
+      }
     }
   }
 
+  @override
+  void dispose() {
+    jenisServiceController.dispose();
+    biayaController.dispose();
+    tanggalServiceController.dispose();
+    catatanController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B4996),
@@ -144,8 +202,8 @@ class _FormDataServiceState extends State<FormDataService> {
           ),
         ),
         title: Text(
-          isEdit ? "Edit Data Perjalanan" : "Input Data Perjalanan",
-          style: TextStyle(color: Colors.white),
+          isEdit ? "Edit Data Service" : "Input Data Service",
+          style: const TextStyle(color: Colors.white),
         ),
         centerTitle: true,
       ),
@@ -154,7 +212,6 @@ class _FormDataServiceState extends State<FormDataService> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Plat Kendaraan
             const Text("Plat Kendaraan", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             StreamBuilder<QuerySnapshot>(
@@ -167,19 +224,24 @@ class _FormDataServiceState extends State<FormDataService> {
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Text("Tidak ada data");
+                  return const Text(
+                    "Tidak ada data",
+                    style: TextStyle(color: Colors.white),
+                  );
                 }
+
                 final platList = snapshot.data!.docs.map((doc) {
                   return {
                     'id': doc.id,
                     'plat': doc['plat_kendaraan']?.toString().trim() ?? '-',
                   };
                 }).toList();
+
                 return DropdownButtonFormField<String>(
                   initialValue: platList.any((e) => e['id'] == selectedPlat)
                       ? selectedPlat
                       : null,
-                  dropdownColor: const Color(0xFFFFFFFF),
+                  dropdownColor: Colors.white,
                   decoration: _inputDecoration("Pilih Plat Kendaraan"),
                   style: const TextStyle(color: Colors.black),
                   icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
@@ -189,17 +251,20 @@ class _FormDataServiceState extends State<FormDataService> {
                       child: Text(plat['plat'] ?? '-'),
                     );
                   }).toList(),
-                  onChanged: (val) => setState(() => selectedPlat = val),
+                  onChanged: isEdit
+                      ? null
+                      : (val) => setState(() => selectedPlat = val),
                 );
               },
             ),
+
             const SizedBox(height: 16),
+
             const Text(
-              "Tanggal Keberangkatan",
+              "Tanggal Service",
               style: TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 8),
-
             TextField(
               readOnly: true,
               controller: tanggalServiceController,
@@ -208,13 +273,14 @@ class _FormDataServiceState extends State<FormDataService> {
               onTap: () async {
                 DateTime? pickedDate = await showDatePicker(
                   context: context,
-                  initialDate: DateTime.now(),
+                  initialDate: selectedTanggalService ?? DateTime.now(),
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2100),
                 );
 
                 if (pickedDate != null) {
                   setState(() {
+                    selectedTanggalService = pickedDate;
                     tanggalServiceController.text = DateFormat(
                       'dd-MM-yyyy',
                     ).format(pickedDate);
@@ -222,9 +288,9 @@ class _FormDataServiceState extends State<FormDataService> {
                 }
               },
             ),
-            SizedBox(height: 10),
 
-            // Jenis Service
+            const SizedBox(height: 16),
+
             const Text("Jenis Service", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             TextField(
@@ -232,9 +298,9 @@ class _FormDataServiceState extends State<FormDataService> {
               style: const TextStyle(color: Colors.black),
               decoration: _inputDecoration("Masukkan Jenis Service"),
             ),
+
             const SizedBox(height: 16),
 
-            // Biaya Service
             const Text(
               "Biaya Service (Rp)",
               style: TextStyle(color: Colors.white),
@@ -245,23 +311,20 @@ class _FormDataServiceState extends State<FormDataService> {
               keyboardType: TextInputType.number,
               style: const TextStyle(color: Colors.black),
               inputFormatters: [RupiahInputFormatter()],
-              decoration: _inputDecoration("Masukkan Upah Driver (Rp)")
-                  .copyWith(
-                    prefixText: "Rp ",
-                    prefixStyle: const TextStyle(color: Colors.black),
-                  ),
+              decoration: _inputDecoration("Masukkan Biaya Service").copyWith(
+                prefixText: "Rp ",
+                prefixStyle: const TextStyle(color: Colors.black),
+              ),
             ),
+
             const SizedBox(height: 16),
 
-            // kondisi rem
             const Text("Kondisi Rem", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: selectedKondisiRem,
               dropdownColor: Colors.white,
-              decoration: _inputDecoration(
-                "Pilih Kondisi Rem Saat Di Perbaiki",
-              ),
+              decoration: _inputDecoration("Pilih Kondisi Rem"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               items: kondisiKomponen.map((kondisi) {
@@ -269,16 +332,15 @@ class _FormDataServiceState extends State<FormDataService> {
               }).toList(),
               onChanged: (val) => setState(() => selectedKondisiRem = val),
             ),
+
             const SizedBox(height: 8),
-            // kondisi ban
+
             const Text("Kondisi Ban", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: selectedKondisiBan,
               dropdownColor: Colors.white,
-              decoration: _inputDecoration(
-                "Pilih Kondisi Ban Saat Di Perbaiki",
-              ),
+              decoration: _inputDecoration("Pilih Kondisi Ban"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               items: kondisiKomponen.map((kondisi) {
@@ -286,8 +348,9 @@ class _FormDataServiceState extends State<FormDataService> {
               }).toList(),
               onChanged: (val) => setState(() => selectedKondisiBan = val),
             ),
+
             const SizedBox(height: 8),
-            // kondisi baterai
+
             const Text(
               "Kondisi Baterai",
               style: TextStyle(color: Colors.white),
@@ -296,9 +359,7 @@ class _FormDataServiceState extends State<FormDataService> {
             DropdownButtonFormField<String>(
               value: selectedKondisiBaterai,
               dropdownColor: Colors.white,
-              decoration: _inputDecoration(
-                "Pilih Kondisi Baterai Saat Di Perbaiki",
-              ),
+              decoration: _inputDecoration("Pilih Kondisi Baterai"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               items: kondisiKomponen.map((kondisi) {
@@ -306,16 +367,71 @@ class _FormDataServiceState extends State<FormDataService> {
               }).toList(),
               onChanged: (val) => setState(() => selectedKondisiBaterai = val),
             ),
+
             const SizedBox(height: 8),
-            // kecelakaan
+
+            const Text(
+              "Konsumsi Bahan Bakar",
+              style: TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: selectedFuelConsumption,
+              dropdownColor: Colors.white,
+              decoration: _inputDecoration(
+                "Pilih Kondisi Konsumsi Bahan Bakar",
+              ),
+              style: const TextStyle(color: Colors.black),
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+              items: kondisiKomponen.map((kondisi) {
+                return DropdownMenuItem(value: kondisi, child: Text(kondisi));
+              }).toList(),
+              onChanged: (val) => setState(() => selectedFuelConsumption = val),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Text("Kualitas Oli", style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: selectedOilQuality,
+              dropdownColor: Colors.white,
+              decoration: _inputDecoration("Pilih Kondisi Kualitas Oli"),
+              style: const TextStyle(color: Colors.black),
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+              items: kondisiKomponen.map((kondisi) {
+                return DropdownMenuItem(value: kondisi, child: Text(kondisi));
+              }).toList(),
+              onChanged: (val) => setState(() => selectedOilQuality = val),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Text(
+              "Tingkat Getaran",
+              style: TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: selectedTingkatGetaran,
+              dropdownColor: Colors.white,
+              decoration: _inputDecoration("Pilih Tingkat Getaran"),
+              style: const TextStyle(color: Colors.black),
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+              items: kondisiKomponen.map((kondisi) {
+                return DropdownMenuItem(value: kondisi, child: Text(kondisi));
+              }).toList(),
+              onChanged: (val) => setState(() => selectedTingkatGetaran = val),
+            ),
+
+            const SizedBox(height: 16),
+
             const Text("Kecelakaan", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: selectedKecelakaan,
               dropdownColor: Colors.white,
-              decoration: _inputDecoration(
-                "Pilih Kondisi Baterai Saat Di Perbaiki",
-              ),
+              decoration: _inputDecoration("Pilih Status Kecelakaan"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               items: kecelakaan.map((status) {
@@ -323,41 +439,22 @@ class _FormDataServiceState extends State<FormDataService> {
               }).toList(),
               onChanged: (val) => setState(() => selectedKecelakaan = val),
             ),
-            const SizedBox(height: 8),
-            // catatan kecelakaan
+
+            const SizedBox(height: 16),
+
             const Text(
-              "Catatan Kecelakaan",
+              "Catatan Kerusakan",
               style: TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: catatanController,
               style: const TextStyle(color: Colors.black),
-              decoration: _inputDecoration("Masukkan Catatan Kecelakaan"),
-            ),
-            const SizedBox(height: 16),
-            // Odometer
-            const Text(
-              "Odometer saat Servis",
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: odometerController,
-              inputFormatters: [RupiahInputFormatter()],
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.black),
-              decoration: _inputDecoration("Masukkan Upah Driver (Rp)")
-                  .copyWith(
-                    suffixText: "KM ",
-                    suffixStyle: const TextStyle(color: Colors.black),
-                  ),
+              decoration: _inputDecoration("Masukkan Catatan Kerusakan"),
             ),
 
-            // Tanggal Service
             const SizedBox(height: 30),
 
-            // Tombol Submit
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -397,7 +494,7 @@ class _FormDataServiceState extends State<FormDataService> {
                 },
                 child: Text(
                   isEdit ? "Update Data" : "Tambahkan Data",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -416,7 +513,7 @@ class _FormDataServiceState extends State<FormDataService> {
       hintText: hint,
       hintStyle: const TextStyle(
         color: Color(0xFF000000),
-      ).copyWith(color: Color(0xFF000000).withOpacity(0.5)),
+      ).copyWith(color: const Color(0xFF000000).withOpacity(0.5)),
       filled: true,
       fillColor: const Color(0xFFD9D9D9),
       border: OutlineInputBorder(

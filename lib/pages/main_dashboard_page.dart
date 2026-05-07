@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:pertro_fleet/pages/MapsPageComponent/mapPageAdmin.dart';
 import 'HomePageComponent/HomePage.dart';
 import 'ProfilePageComponent/profile_page.dart';
 import 'MapsPageComponent/mapPage.dart';
 import 'ActivityPageComponent/activity_page.dart';
 import 'FleetPageComponent/fleetPage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DashboardPage extends StatefulWidget {
   final int initialIndex;
@@ -15,23 +18,59 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   int _currentIndex = 0;
+  final user = FirebaseAuth.instance.currentUser;
+  String get uid => user!.uid;
+  String nama = '';
+  String jabatan = '';
+  Future<void> getUserData() async {
+    try {
+      print("UID: $uid");
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    MapPage(),
-    ActivityPage(),
-    FleetPage(),
-    ProfilePage(),
-  ];
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      print("EXISTS: ${doc.exists}");
+      print("DATA: ${doc.data()}");
+
+      if (doc.exists) {
+        setState(() {
+          nama = doc['nama'] ?? '';
+          jabatan = doc['posisi'] ?? '';
+        });
+      }
+    } catch (e) {
+      print("Error ambil user: $e");
+    }
+  }
+
+  List<Widget> getPages() {
+    print("ini jabatan $nama");
+    return [
+      HomePage(),
+      jabatan == "Admin" ? MapPageAdmin() : MapPage(),
+      ActivityPage(),
+      FleetPage(),
+      ProfilePage(),
+    ];
+  }
+
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    getUserData(); // 🔥 ini yang kamu lupa
   }
 
+  @override
   Widget build(BuildContext context) {
+    if (jabatan.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: getPages()[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF0B4996),

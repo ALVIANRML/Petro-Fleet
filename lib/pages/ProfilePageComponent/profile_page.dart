@@ -34,7 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (doc.exists) {
         setState(() {
           nama = doc['nama'] ?? '';
-          jabatan = doc['jabatan'] ?? '';
+          jabatan = doc['posisi'] ?? '';
         });
       }
     } catch (e) {
@@ -138,74 +138,60 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
               ),
             ),
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD9D9D9),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                leading: const Icon(
-                  Icons.person,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
+            if (jabatan != "Sopir")
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD9D9D9),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                title: const Text(
-                  "Data Pengguna",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                trailing: const Icon(
-                  Icons.arrow_forward,
-                  size: 16,
-                  color: Colors.black,
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ListpenggunaPage(),
+                child: ListTile(
+                  leading: const Icon(Icons.person, color: Colors.black),
+                  title: const Text(
+                    "Data Pengguna",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                },
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD9D9D9),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                leading: const Icon(
-                  Icons.settings,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-                title: const Text(
-                  "Settings",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
                   ),
+                  trailing: const Icon(Icons.arrow_forward, size: 16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ListpenggunaPage(),
+                      ),
+                    );
+                  },
                 ),
-                trailing: const Icon(
-                  Icons.arrow_forward,
-                  size: 16,
-                  color: Colors.black,
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FormSettingProfile(),
-                    ),
-                  );
-                },
               ),
-            ),
+            if (jabatan != "Sopir")
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD9D9D9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.settings, color: Colors.black),
+                  title: const Text(
+                    "Settings",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward, size: 16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FormSettingProfile(),
+                      ),
+                    );
+                  },
+                ),
+              ),
             Container(
               margin: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(

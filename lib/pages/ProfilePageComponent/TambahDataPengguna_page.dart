@@ -16,7 +16,7 @@ class _FormAddProfileState extends State<FormAddProfile> {
   final TextEditingController passwordController = TextEditingController();
   String? selectedPosisi;
 
-  final List<String> posisiList = ["direktur", "admin", "pengemudi"];
+  final List<String> posisiList = ["Admin", "Sopir"];
 
   Future<void> registerFunction(BuildContext context) async {
     try {

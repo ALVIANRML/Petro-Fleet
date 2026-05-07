@@ -24,13 +24,16 @@ class FormDataPerjalanan extends StatefulWidget {
 class _FormDataPerjalananState extends State<FormDataPerjalanan> {
   bool get isEdit => widget.docId != null;
   String? selectedPlat;
-  final TextEditingController muatanController = TextEditingController();
+  String? selectedSupir;
+  final TextEditingController jenisMuatanController = TextEditingController();
+  final List<Map<String, TextEditingController>> muatanList = [];
   final TextEditingController lokasiAwalController = TextEditingController();
   final TextEditingController tujuanMuatanController = TextEditingController();
   final TextEditingController upahDriverController = TextEditingController();
   final TextEditingController uangBensinController = TextEditingController();
   final TextEditingController tanggalBerangkatController =
       TextEditingController();
+  DateTime? selectedTanggalBerangkat;
   final rupiahFormat = NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'Rp ',
@@ -47,14 +50,30 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
     });
   }
 
+  Stream<List<String>> getSupir() {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .where('posisi', isEqualTo: 'Sopir') // ⬅️ filter di sini
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return doc['nama'] as String;
+          }).toList();
+        });
+  }
+
   Future<void> submitFunction(BuildContext context) async {
     if (selectedPlat == null ||
-        muatanController.text.isEmpty ||
+        selectedSupir == null ||
         lokasiAwalController.text.isEmpty ||
         tujuanMuatanController.text.isEmpty ||
         upahDriverController.text.isEmpty ||
         uangBensinController.text.isEmpty ||
-        tanggalBerangkatController.text.isEmpty) {
+        selectedTanggalBerangkat == null ||
+        muatanList.isEmpty ||
+        muatanList.any(
+          (m) => m['jenis']!.text.isEmpty || m['jumlah']!.text.isEmpty,
+        )) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Semua field wajib diisi")));
@@ -62,17 +81,32 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
     }
 
     try {
+      print(selectedSupir);
+
+      final muatanData = muatanList.map((m) {
+        return {
+          'jenis_muatan': m['jenis']!.text,
+          'jumlah_muatan': int.parse(m['jumlah']!.text.replaceAll('.', '')),
+        };
+      }).toList();
+
+      final totalMuatan = muatanData.fold<int>(
+        0,
+        (total, item) => total + (item['jumlah_muatan'] as int),
+      );
+
       final data = {
-        'jumlah_muatan': int.parse(muatanController.text.replaceAll('.', '')),
+        'muatan': muatanData,
+        'total_jumlah_muatan': totalMuatan,
         'lokasi_awal': lokasiAwalController.text,
         'tujuan_muatan': tujuanMuatanController.text,
         'upah_driver': int.parse(upahDriverController.text.replaceAll('.', '')),
         'uang_bensin': int.parse(uangBensinController.text.replaceAll('.', '')),
-        'tanggal': tanggalBerangkatController.text,
+        'tanggal': Timestamp.fromDate(selectedTanggalBerangkat!),
+        'id_pengemudi': selectedSupir,
       };
 
       if (isEdit) {
-        // UPDATE
         await FirebaseFirestore.instance
             .collection('kendaraan')
             .doc(widget.kendaraanId)
@@ -80,7 +114,6 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
             .doc(widget.docId)
             .update(data);
       } else {
-        // ADD
         await FirebaseFirestore.instance
             .collection('kendaraan')
             .doc(selectedPlat)
@@ -90,7 +123,9 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
               'created_at': FieldValue.serverTimestamp(),
               'total_muatan_diterima': 0,
               'tanggal_tiba': null,
-              'status': "in transit",
+              'status': 'in_transit',
+              'approved_by_driver': false,
+              'approved_arrival': false,
             });
       }
 
@@ -122,19 +157,68 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
       final data = widget.data!;
 
       selectedPlat = widget.kendaraanId;
-
-      muatanController.text = data['jumlah_muatan']?.toString() ?? '';
+      selectedSupir = data['id_pengemudi'];
 
       lokasiAwalController.text = data['lokasi_awal'] ?? '';
-
       tujuanMuatanController.text = data['tujuan_muatan'] ?? '';
-
       upahDriverController.text = data['upah_driver']?.toString() ?? '';
-
       uangBensinController.text = data['uang_bensin']?.toString() ?? '';
+      final tanggal = data['tanggal'];
 
-      tanggalBerangkatController.text = data['tanggal'] ?? '';
+      if (tanggal is Timestamp) {
+        selectedTanggalBerangkat = tanggal.toDate();
+        tanggalBerangkatController.text = DateFormat(
+          'dd-MM-yyyy',
+        ).format(selectedTanggalBerangkat!);
+      } else if (tanggal is String) {
+        tanggalBerangkatController.text = tanggal;
+      }
+
+      if (data['muatan'] != null && data['muatan'] is List) {
+        for (var item in data['muatan']) {
+          tambahMuatan(
+            jenis: item['jenis_muatan']?.toString() ?? '',
+            jumlah: item['jumlah_muatan']?.toString() ?? '',
+          );
+        }
+      } else {
+        tambahMuatan();
+      }
+    } else {
+      tambahMuatan();
     }
+  }
+
+  void tambahMuatan({String jenis = '', String jumlah = ''}) {
+    setState(() {
+      muatanList.add({
+        'jenis': TextEditingController(text: jenis),
+        'jumlah': TextEditingController(text: jumlah),
+      });
+    });
+  }
+
+  void hapusMuatan(int index) {
+    setState(() {
+      muatanList[index]['jumlah']!.dispose();
+      muatanList.removeAt(index);
+    });
+  }
+
+  @override
+  void dispose() {
+    for (var item in muatanList) {
+      item['jenis']!.dispose();
+      item['jumlah']!.dispose();
+    }
+
+    lokasiAwalController.dispose();
+    tujuanMuatanController.dispose();
+    upahDriverController.dispose();
+    uangBensinController.dispose();
+    tanggalBerangkatController.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -158,6 +242,47 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text("Nama Pengemudi", style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 8),
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .where('posisi', isEqualTo: 'Sopir')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Text("Tidak ada data");
+                }
+                final pengemudiList = snapshot.data!.docs.map((doc) {
+                  return {
+                    'id': doc.id,
+                    'nama_pengemudi': doc['nama']?.toString().trim() ?? '-',
+                  };
+                }).toList();
+                return DropdownButtonFormField<String>(
+                  initialValue:
+                      pengemudiList.any((e) => e['id'] == selectedSupir)
+                      ? selectedSupir
+                      : null,
+                  dropdownColor: const Color(0xFFFFFFFF),
+                  decoration: _inputDecoration("Pilih Pengemudi"),
+                  style: const TextStyle(color: Colors.black),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  items: pengemudiList.map((pengemudi) {
+                    return DropdownMenuItem(
+                      value: pengemudi['id'],
+                      child: Text(pengemudi['nama_pengemudi'] ?? '-'),
+                    );
+                  }).toList(),
+                  onChanged: (val) => setState(() => selectedSupir = val),
+                );
+              },
+            ),
+            SizedBox(height: 16),
             // Plat Kendaraan
             const Text("Plat Kendaraan", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
@@ -199,24 +324,88 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
             ),
             const SizedBox(height: 16),
 
-            // Jumlah Muatan
             const Text(
-              "Jumlah Muatan (Liter)",
-              style: TextStyle(color: Colors.white),
+              "Data Muatan",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: muatanController,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                RupiahInputFormatter(),
-              ],
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.black),
-              decoration: _inputDecoration(
-                "Masukkan Jumlah Muatan",
-              ).copyWith(suffixText: "L"),
+
+            Column(
+              children: List.generate(muatanList.length, (index) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Muatan ${index + 1}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (muatanList.length > 1)
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => hapusMuatan(index),
+                            ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      TextField(
+                        controller: muatanList[index]['jenis'],
+                        style: const TextStyle(color: Colors.black),
+                        decoration: _inputDecoration("Masukkan Jenis Muatan"),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      TextField(
+                        controller: muatanList[index]['jumlah'],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          RupiahInputFormatter(),
+                        ],
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(color: Colors.black),
+                        decoration: _inputDecoration(
+                          "Masukkan Jumlah Muatan",
+                        ).copyWith(suffixText: "Kg"),
+                      ),
+                    ],
+                  ),
+                );
+              }),
             ),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => tambahMuatan(),
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text(
+                  "Tambah Muatan",
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.white),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 16),
 
             // lokasi awal muatan
@@ -295,13 +484,15 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
               onTap: () async {
                 DateTime? pickedDate = await showDatePicker(
                   context: context,
-                  initialDate: DateTime.now(),
+                  initialDate: selectedTanggalBerangkat ?? DateTime.now(),
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2100),
                 );
 
                 if (pickedDate != null) {
                   setState(() {
+                    selectedTanggalBerangkat = pickedDate;
+
                     tanggalBerangkatController.text = DateFormat(
                       'dd-MM-yyyy',
                     ).format(pickedDate);

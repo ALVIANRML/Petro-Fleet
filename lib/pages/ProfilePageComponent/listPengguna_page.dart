@@ -147,7 +147,7 @@ class _ListPenggunaPageState extends State<ListpenggunaPage> {
 
                     String nama = (user['nama'] ?? "").toLowerCase();
                     String email = (user['email'] ?? "").toLowerCase();
-                    String jabatan = (user['jabatan'] ?? "").toLowerCase();
+                    String jabatan = (user['posisi'] ?? "").toLowerCase();
 
                     return nama.contains(searchText) ||
                         email.contains(searchText) ||
@@ -183,7 +183,7 @@ class _ListPenggunaPageState extends State<ListpenggunaPage> {
                                 Expanded(
                                   flex: 2,
                                   child: Text(
-                                    user['jabatan'] ?? "-",
+                                    user['posisi'] ?? "-",
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       color: Colors.white,

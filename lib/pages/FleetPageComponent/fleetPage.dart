@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pertro_fleet/pages/FleetPageComponent/FormFleet.dart';
+import 'package:pertro_fleet/pages/FleetPageComponent/fleetDetail_page.dart';
 
 class FleetPage extends StatefulWidget {
   const FleetPage({super.key});
@@ -16,23 +17,65 @@ class _FleetPageState extends State<FleetPage> {
     return FirebaseFirestore.instance.collection('kendaraan').snapshots();
   }
 
+  Color getStatusColor(dynamic status) {
+    final text = status?.toString() ?? '';
+
+    if (text.contains('Hijau')) return Colors.greenAccent;
+    if (text.contains('Jingga')) return Colors.orangeAccent;
+    if (text.contains('Merah')) return Colors.redAccent;
+
+    return Colors.white;
+  }
+
+  String formatEstimasi(dynamic estimasi) {
+    if (estimasi == null) return "-";
+
+    if (estimasi is num) {
+      return "${estimasi.toStringAsFixed(2)} hari";
+    }
+
+    final angka = double.tryParse(estimasi.toString());
+    if (angka == null) return "-";
+
+    return "${angka.toStringAsFixed(2)} hari";
+  }
+
+  void goToDetail({
+    required String kendaraanId,
+    required Map<String, dynamic> kendaraan,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailFleetPage(
+          kendaraanId: kendaraanId,
+          kendaraan: kendaraan,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           "FLEET",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         backgroundColor: const Color(0xFF0B4996),
       ),
       backgroundColor: const Color(0xFF0B4996),
       body: Padding(
-        padding: const EdgeInsetsGeometry.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
+
             Align(
               alignment: Alignment.topLeft,
               child: Column(
@@ -47,9 +90,12 @@ class _FleetPageState extends State<FleetPage> {
                     decoration: InputDecoration(
                       hintText: "Cari...",
                       hintStyle: const TextStyle(color: Colors.black),
-                      prefixIcon: const Icon(Icons.search, color: Colors.black),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Colors.black,
+                      ),
                       filled: true,
-                      fillColor: const Color(0xFFFFFFFF),
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(100),
                         borderSide: BorderSide.none,
@@ -67,12 +113,14 @@ class _FleetPageState extends State<FleetPage> {
                         minimumSize: const Size(double.infinity, 50),
                         backgroundColor: const Color(0xFF0A59BA),
                       ),
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FormFleetPage(),
-                        ),
-                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FormFleetPage(),
+                          ),
+                        );
+                      },
                       child: const Text(
                         "+ Tambah Data",
                         style: TextStyle(
@@ -86,7 +134,9 @@ class _FleetPageState extends State<FleetPage> {
                 ],
               ),
             ),
+
             const SizedBox(height: 20),
+
             Row(
               children: const [
                 Expanded(
@@ -103,7 +153,7 @@ class _FleetPageState extends State<FleetPage> {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    "Jenis Kendaraan ",
+                    "Jenis Kendaraan",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -125,7 +175,7 @@ class _FleetPageState extends State<FleetPage> {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    "Aksi",
+                    "Status",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -135,38 +185,76 @@ class _FleetPageState extends State<FleetPage> {
                 ),
               ],
             ),
+
             const Divider(color: Colors.white),
+
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: getKendaraanStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        "Terjadi error: ${snapshot.error}",
+                        style: const TextStyle(color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(child: Text("Data Kosong"));
+                    return const Center(
+                      child: Text(
+                        "Data Kosong",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
                   }
 
-                  var data = snapshot.data!.docs;
+                  final data = snapshot.data!.docs;
 
-                  var filteredData = data.where((doc) {
-                    var kendaraan = doc.data() as Map<String, dynamic>;
+                  final filteredData = data.where((doc) {
+                    final kendaraan = doc.data() as Map<String, dynamic>;
 
-                    String plat = (kendaraan['plat_kendaraan'] ?? "")
+                    final plat = (kendaraan['plat_kendaraan'] ?? "")
+                        .toString()
                         .toLowerCase();
-                    String model = (kendaraan['model_kendaraan'] ?? "")
+
+                    final model = (kendaraan['model_kendaraan'] ?? "")
+                        .toString()
                         .toLowerCase();
 
                     return plat.contains(searchQuery) ||
                         model.contains(searchQuery);
                   }).toList();
 
+                  if (filteredData.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "Data tidak ditemukan",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
                   return ListView.builder(
                     itemCount: filteredData.length,
                     itemBuilder: (context, index) {
-                      var kendaraan =
+                      final kendaraanId = filteredData[index].id;
+
+                      final kendaraan =
                           filteredData[index].data() as Map<String, dynamic>;
+
+                      final estimasi = kendaraan['estimasi_masa_pakai'];
+                      final status = kendaraan['status_rul'];
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 2),
@@ -189,6 +277,7 @@ class _FleetPageState extends State<FleetPage> {
                                     ),
                                   ),
                                 ),
+
                                 Expanded(
                                   flex: 2,
                                   child: Text(
@@ -200,22 +289,51 @@ class _FleetPageState extends State<FleetPage> {
                                     ),
                                   ),
                                 ),
+
                                 Expanded(
                                   flex: 2,
                                   child: Text(
-                                    "${kendaraan['usia_kendaraan'] ?? 0}",
+                                    formatEstimasi(estimasi),
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: getStatusColor(status),
                                       fontSize: 12,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                                const Expanded(
+
+                                Expanded(
                                   flex: 2,
-                                  child: Icon(
-                                    Icons.arrow_forward,
-                                    color: Colors.white,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          status?.toString() ?? "-",
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: getStatusColor(status),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                        onPressed: () {
+                                          goToDetail(
+                                            kendaraanId: kendaraanId,
+                                            kendaraan: kendaraan,
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],

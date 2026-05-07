@@ -106,7 +106,7 @@ class _FormFleetPageState extends State<FormFleetPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Edit Profile",
+          "Tambah Kendaraan",
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
