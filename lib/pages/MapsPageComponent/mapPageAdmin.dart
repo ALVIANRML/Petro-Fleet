@@ -22,12 +22,55 @@ class _MapPageAdminState extends State<MapPageAdmin> {
     loadAllKendaraanPosition();
   }
 
+  // ===== Helper Functions =====
+  LatLng? parseLocation(dynamic lokasi) {
+    if (lokasi is GeoPoint) return LatLng(lokasi.latitude, lokasi.longitude);
+    if (lokasi is Map) {
+      final lat = lokasi['latitude'];
+      final lng = lokasi['longitude'];
+      if (lat != null && lng != null)
+        return LatLng(
+          double.parse(lat.toString()),
+          double.parse(lng.toString()),
+        );
+    }
+    if (lokasi is List && lokasi.length == 2)
+      return LatLng(
+        double.parse(lokasi[0].toString()),
+        double.parse(lokasi[1].toString()),
+      );
+    return null;
+  }
+
+  LatLng? getLokasiBerangkat(Map<String, dynamic> data) =>
+      parseLocation(data['lokasi_berangkat']);
+  LatLng? getLokasiAkhir(Map<String, dynamic> data) =>
+      parseLocation(data['lokasi_akhir']);
+
+  Future<LatLng?> getLastTrackingPosition(
+    String kendaraanId,
+    String perjalananId,
+  ) async {
+    final trackingSnapshot = await FirebaseFirestore.instance
+        .collection('kendaraan')
+        .doc(kendaraanId)
+        .collection('perjalanan')
+        .doc(perjalananId)
+        .collection('tracking')
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .get();
+
+    if (trackingSnapshot.docs.isEmpty) return null;
+    return parseLocation(trackingSnapshot.docs.first.data()['posisi']);
+  }
+
+  // ===== Load Kendaraan =====
   Future<void> loadAllKendaraanPosition() async {
     try {
       final kendaraanSnapshot = await FirebaseFirestore.instance
           .collection('kendaraan')
           .get();
-
       final List<Map<String, dynamic>> tempMarkers = [];
 
       for (final kendaraanDoc in kendaraanSnapshot.docs) {
@@ -35,19 +78,32 @@ class _MapPageAdminState extends State<MapPageAdmin> {
         final kendaraanData = kendaraanDoc.data();
         final platKendaraan = kendaraanData['plat_kendaraan'] ?? '-';
 
-        final perjalananSnapshot = await kendaraanDoc.reference
+        // Ambil perjalanan aktif (on_trip) pertama
+        final activeTripSnapshot = await kendaraanDoc.reference
             .collection('perjalanan')
+            .where('status', isEqualTo: 'on_trip')
             .orderBy('created_at', descending: true)
             .limit(1)
             .get();
 
-        if (perjalananSnapshot.docs.isEmpty) {
-          continue;
+        QueryDocumentSnapshot<Map<String, dynamic>>? perjalananDoc;
+        if (activeTripSnapshot.docs.isNotEmpty) {
+          perjalananDoc = activeTripSnapshot.docs.first;
+        } else {
+          // Jika tidak ada perjalanan on_trip, ambil perjalanan terbaru
+          final latestTripSnapshot = await kendaraanDoc.reference
+              .collection('perjalanan')
+              .orderBy('created_at', descending: true)
+              .limit(1)
+              .get();
+          if (latestTripSnapshot.docs.isNotEmpty) {
+            perjalananDoc = latestTripSnapshot.docs.first;
+          }
         }
 
-        final perjalananDoc = perjalananSnapshot.docs.first;
-        final perjalananData = perjalananDoc.data();
+        if (perjalananDoc == null) continue;
 
+        final perjalananData = perjalananDoc.data();
         final status = perjalananData['status'] ?? '';
         LatLng? posisiTerakhir;
 
@@ -56,8 +112,11 @@ class _MapPageAdminState extends State<MapPageAdmin> {
             kendaraanId,
             perjalananDoc.id,
           );
+          posisiTerakhir ??= getLokasiBerangkat(perjalananData);
+        } else if (status == 'complete') {
+          posisiTerakhir = getLokasiAkhir(perjalananData);
         } else {
-          posisiTerakhir = getPositionFromPerjalanan(perjalananData);
+          posisiTerakhir = getLokasiBerangkat(perjalananData);
         }
 
         if (posisiTerakhir != null) {
@@ -67,6 +126,9 @@ class _MapPageAdminState extends State<MapPageAdmin> {
             'plat_kendaraan': platKendaraan,
             'status': status,
             'position': posisiTerakhir,
+            'prediksi_perbaikan': kendaraanData['prediksi_perbaikan'] ?? [],
+            'rul_hari': kendaraanData['rul_hari'] ?? '-',
+            'status_rul': kendaraanData['status_rul'] ?? '-',
           });
         }
       }
@@ -83,122 +145,71 @@ class _MapPageAdminState extends State<MapPageAdmin> {
       }
     } catch (e) {
       if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
-
+      setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Gagal memuat posisi kendaraan: $e")),
       );
     }
   }
 
-  Future<LatLng?> getLastTrackingPosition(
-    String kendaraanId,
-    String perjalananId,
-  ) async {
-    final trackingSnapshot = await FirebaseFirestore.instance
-        .collection('kendaraan')
-        .doc(kendaraanId)
-        .collection('perjalanan')
-        .doc(perjalananId)
-        .collection('tracking')
-        .orderBy('timestamp', descending: true)
-        .limit(1)
-        .get();
-
-    if (trackingSnapshot.docs.isEmpty) {
-      return null;
-    }
-
-    final data = trackingSnapshot.docs.first.data();
-    final posisi = data['posisi'];
-
-    if (posisi is GeoPoint) {
-      return LatLng(posisi.latitude, posisi.longitude);
-    }
-
-    return null;
-  }
-
-  LatLng? getPositionFromPerjalanan(Map<String, dynamic> data) {
-    final lokasiAkhir = data['lokasi_akhir'];
-    final lokasiBerangkat = data['lokasi_berangkat'];
-
-    if (lokasiAkhir is GeoPoint) {
-      return LatLng(lokasiAkhir.latitude, lokasiAkhir.longitude);
-    }
-
-    if (lokasiAkhir is Map) {
-      final lat = lokasiAkhir['latitude'];
-      final lng = lokasiAkhir['longitude'];
-
-      if (lat != null && lng != null) {
-        return LatLng(
-          double.parse(lat.toString()),
-          double.parse(lng.toString()),
-        );
-      }
-    }
-
-    if (lokasiBerangkat is GeoPoint) {
-      return LatLng(lokasiBerangkat.latitude, lokasiBerangkat.longitude);
-    }
-
-    return null;
-  }
-
+  // ===== UI Helper =====
   Color getMarkerColor(String status) {
-    if (status == 'on_trip') {
-      return Colors.blue;
-    } else if (status == 'completed') {
-      return Colors.green;
-    } else {
-      return Colors.orange;
-    }
+    if (status == 'on_trip') return Colors.blue;
+    if (status == 'complete') return Colors.green;
+    return Colors.orange;
   }
 
   String getStatusLabel(String status) {
-    if (status == 'on_trip') {
-      return 'On Trip';
-    } else if (status == 'completed') {
-      return 'Completed';
-    } else {
-      return 'In Transit';
-    }
+    if (status == 'on_trip') return 'On Trip';
+    if (status == 'complete') return 'Complete';
+    return 'In Transit';
   }
 
   void showKendaraanInfo(Map<String, dynamic> item) {
     showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item['plat_kendaraan'],
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+      builder: (context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item['plat_kendaraan'],
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text("Status: ${getStatusLabel(item['status'])}"),
+            const SizedBox(height: 8),
+            Text("RUL: ${item['rul_hari']} Hari (${item['status_rul']})"),
+            const SizedBox(height: 8),
+            if ((item['prediksi_perbaikan'] as List).isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Prediksi Perbaikan:",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  ...List.generate(
+                    item['prediksi_perbaikan'].length,
+                    (index) => Text(
+                      "${index + 1}. ${item['prediksi_perbaikan'][index]}",
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text("Status: ${getStatusLabel(item['status'])}"),
-              const SizedBox(height: 8),
-              Text("Kendaraan ID: ${item['kendaraan_id']}"),
-              Text("Perjalanan ID: ${item['perjalanan_id']}"),
-            ],
-          ),
-        );
-      },
+            const SizedBox(height: 8),
+            Text("Kendaraan ID: ${item['kendaraan_id']}"),
+            Text("Perjalanan ID: ${item['perjalanan_id']}"),
+          ],
+        ),
+      ),
     );
   }
 
+  // ===== Build Map =====
   @override
   Widget build(BuildContext context) {
     const defaultLocation = LatLng(3.595196, 98.672223);
@@ -210,9 +221,7 @@ class _MapPageAdminState extends State<MapPageAdmin> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              setState(() {
-                isLoading = true;
-              });
+              setState(() => isLoading = true);
               loadAllKendaraanPosition();
             },
           ),
@@ -233,9 +242,8 @@ class _MapPageAdminState extends State<MapPageAdmin> {
               ),
               MarkerLayer(
                 markers: kendaraanMarkers.map((item) {
-                  final LatLng position = item['position'];
-                  final String status = item['status'];
-
+                  final position = item['position'];
+                  final status = item['status'];
                   return Marker(
                     point: position,
                     width: 80,
@@ -280,13 +288,11 @@ class _MapPageAdminState extends State<MapPageAdmin> {
               ),
             ],
           ),
-
           if (isLoading)
             Container(
               color: Colors.black.withOpacity(0.2),
               child: const Center(child: CircularProgressIndicator()),
             ),
-
           Positioned(
             top: 12,
             left: 12,

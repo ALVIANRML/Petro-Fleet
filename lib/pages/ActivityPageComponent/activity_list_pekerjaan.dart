@@ -28,9 +28,19 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
     activeTab = widget.initialTab;
   }
 
-  // ─── CEK & MINTA IZIN LOKASI ────────────────────────────────────────────────
-  /// Mengembalikan true jika lokasi sudah siap digunakan.
-  /// Jika GPS mati atau permission ditolak, tampilkan dialog dan kembalikan false.
+  String formatTanggal(dynamic value) {
+    if (value == null) return '-';
+    if (value is Timestamp) {
+      final d = value.toDate();
+      final day = d.day.toString().padLeft(2, '0');
+      final month = d.month.toString().padLeft(2, '0');
+      final year = d.year.toString();
+      return '$day-$month-$year';
+    }
+    if (value is String) return value;
+    return '-';
+  }
+
   Future<bool> _ensureLocationReady(BuildContext context) async {
     // 1. Periksa apakah layanan GPS aktif
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -76,7 +86,9 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
         if (!context.mounted) return false;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Izin lokasi ditolak. Perjalanan tidak bisa dimulai.'),
+            content: Text(
+              'Izin lokasi ditolak. Perjalanan tidak bisa dimulai.',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -312,7 +324,9 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                     "Plat Kendaraan",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -321,7 +335,9 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                     "Tanggal",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -330,7 +346,9 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                     "Tujuan",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -339,7 +357,9 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                     "Aksi",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -413,13 +433,12 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                             })();
 
                         return matchSearch && matchDate;
-                      }).toList()
-                        ..sort((a, b) {
-                          final aTime = a['created_at'] as Timestamp?;
-                          final bTime = b['created_at'] as Timestamp?;
-                          if (aTime == null || bTime == null) return 0;
-                          return bTime.compareTo(aTime);
-                        });
+                      }).toList()..sort((a, b) {
+                        final aTime = a['created_at'] as Timestamp?;
+                        final bTime = b['created_at'] as Timestamp?;
+                        if (aTime == null || bTime == null) return 0;
+                        return bTime.compareTo(aTime);
+                      });
 
                   if (docs.isEmpty) {
                     return const Center(
@@ -435,7 +454,6 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                     itemBuilder: (context, index) {
                       final data = docs[index];
                       final platKendaraan = data['plat_kendaraan'] ?? '-';
-                      final tanggal = data['tanggal'] ?? '-';
                       final tujuan = data['tujuan_muatan'] ?? '-';
                       final docId = data['id'] ?? '';
                       final kendaraanId = data['kendaraan_id'] ?? '';
@@ -456,17 +474,17 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                                   child: Text(
                                     platKendaraan,
                                     textAlign: TextAlign.center,
-                                    style:
-                                        const TextStyle(color: Colors.white),
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                 ),
                                 Expanded(
                                   flex: 2,
                                   child: Text(
-                                    tanggal,
+                                    formatTanggal(
+                                      data['tanggal'],
+                                    ), // <-- pakai helper
                                     textAlign: TextAlign.center,
-                                    style:
-                                        const TextStyle(color: Colors.white),
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                 ),
                                 Expanded(
@@ -474,8 +492,7 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                                   child: Text(
                                     tujuan,
                                     textAlign: TextAlign.center,
-                                    style:
-                                        const TextStyle(color: Colors.white),
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                 ),
                                 Expanded(
@@ -497,11 +514,11 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                                         MaterialPageRoute(
                                           builder: (context) =>
                                               DetailPerjalananPage(
-                                            docId: docId,
-                                            currentStatus: activeTab,
-                                            kendaraanId: kendaraanId,
-                                            data: data,
-                                          ),
+                                                docId: docId,
+                                                currentStatus: activeTab,
+                                                kendaraanId: kendaraanId,
+                                                data: data,
+                                              ),
                                         ),
                                       ).then((_) {
                                         setState(() {});

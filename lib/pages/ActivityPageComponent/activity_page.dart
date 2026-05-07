@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/activity_data_perjalanan.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/activity_data_service.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/activity_list_pekerjaan.dart';
+import 'package:pertro_fleet/pages/ActivityPageComponent/activity_histori_pekerjaan.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -101,7 +102,7 @@ class ActivityPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ListPekerjaanPage(),
+                          builder: (context) => const HistoryPekerjaanPage(),
                         ),
                       );
                     },

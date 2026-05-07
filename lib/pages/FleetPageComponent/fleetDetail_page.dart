@@ -38,89 +38,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
     return min + random.nextDouble() * (max - min);
   }
 
-  Map<String, dynamic> generateDummyCondition() {
-    final kondisiRem = randomKondisi();
-    final kondisiBaterai = randomKondisi();
-    final kondisiOli = randomKondisi();
-    final kondisiGetaran = randomKondisi();
-    final kondisiBan = randomKondisi();
-    final kondisiFuel = randomKondisi();
-
-    final brakeScore = kondisiToScore(kondisiRem);
-    final batteryScore = kondisiToScore(kondisiBaterai);
-    final oilScore = kondisiToScore(kondisiOli);
-
-    double tirePressure;
-    if (kondisiBan == 'Baik') {
-      tirePressure = randomRange(32, 36);
-    } else if (kondisiBan == 'Sedang') {
-      tirePressure = randomRange(28, 31);
-    } else {
-      tirePressure = randomRange(20, 27);
-    }
-
-    double fuelConsumption;
-    if (kondisiFuel == 'Baik') {
-      fuelConsumption = randomRange(8, 12);
-    } else if (kondisiFuel == 'Sedang') {
-      fuelConsumption = randomRange(13, 16);
-    } else {
-      fuelConsumption = randomRange(17, 24);
-    }
-
-    double vibrationLevel;
-    if (kondisiGetaran == 'Baik') {
-      vibrationLevel = randomRange(5, 20);
-    } else if (kondisiGetaran == 'Sedang') {
-      vibrationLevel = randomRange(21, 49);
-    } else {
-      vibrationLevel = randomRange(50, 90);
-    }
-
-    double engineTemperature;
-    if (kondisiRem == 'Buruk' ||
-        kondisiBaterai == 'Buruk' ||
-        kondisiOli == 'Buruk') {
-      engineTemperature = randomRange(110, 125);
-    } else if (kondisiRem == 'Sedang' ||
-        kondisiBaterai == 'Sedang' ||
-        kondisiOli == 'Sedang') {
-      engineTemperature = randomRange(95, 109);
-    } else {
-      engineTemperature = randomRange(80, 94);
-    }
-
-    final adaKerusakan =
-        kondisiRem == 'Buruk' ||
-        kondisiBaterai == 'Buruk' ||
-        kondisiOli == 'Buruk' ||
-        kondisiBan == 'Buruk' ||
-        kondisiGetaran == 'Buruk' ||
-        kondisiFuel == 'Buruk';
-
-    return {
-      'kondisi_rem': kondisiRem,
-      'kondisi_baterai': kondisiBaterai,
-      'kondisi_oli': kondisiOli,
-      'kondisi_ban': kondisiBan,
-      'kondisi_getaran': kondisiGetaran,
-      'kondisi_fuel': kondisiFuel,
-
-      'brake_condition': brakeScore,
-      'battery_status': batteryScore,
-      'oil_quality': oilScore,
-      'tire_preasure': double.parse(tirePressure.toStringAsFixed(2)),
-      'fuel_consumtion': double.parse(fuelConsumption.toStringAsFixed(2)),
-      'vibration_level': double.parse(vibrationLevel.toStringAsFixed(2)),
-      'engine_temperature': double.parse(engineTemperature.toStringAsFixed(2)),
-
-      'kecelakaan': adaKerusakan ? 'Ya' : 'Tidak',
-      'catatan_kerusakan': adaKerusakan
-          ? 'Terdapat indikasi kondisi komponen kurang baik'
-          : '-',
-    };
-  }
-
   double getDoubleValue(dynamic value, {double defaultValue = 0.0}) {
     if (value == null) return defaultValue;
 
@@ -142,166 +59,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
 
     final result = int.tryParse(value.toString());
     return result ?? defaultValue;
-  }
-
-  Future<void> createDummyFirebaseData() async {
-    try {
-      final now = DateTime.now();
-
-      final kendaraanRef = FirebaseFirestore.instance
-          .collection('kendaraan')
-          .doc(widget.kendaraanId);
-
-      final perjalananRef = kendaraanRef.collection('perjalanan');
-      final serviceRef = kendaraanRef.collection('service');
-      final observasiRef = kendaraanRef.collection('observasi_mingguan');
-
-      // Update field utama kendaraan agar tidak kosong
-      await kendaraanRef.set({
-        'tahun_produksi': widget.kendaraan['tahun_produksi'] ?? 2020,
-        'total_jam_operasi': widget.kendaraan['total_jam_operasi'] ?? 120,
-        'kapasitas_muatan': widget.kendaraan['kapasitas_muatan'] ?? 5000,
-      }, SetOptions(merge: true));
-
-      // Dummy perjalanan untuk 7 hari terakhir
-      await perjalananRef.add({
-        'tanggal': Timestamp.fromDate(now.subtract(const Duration(days: 1))),
-        'total_jumlah_muatan': 4400,
-        'created_at': FieldValue.serverTimestamp(),
-      });
-
-      // Dummy service untuk 7 hari terakhir
-      await serviceRef.add({
-        'tanggal_perbaikan': Timestamp.fromDate(
-          now.subtract(const Duration(days: 1)),
-        ),
-        'kondisi_rem': 'Baik',
-        'kondisi_baterai': 'Baik',
-        'tekanan_ban': 35,
-        'konsumsi_bahan_bakar': 12,
-        'tingkat_getaran': 3,
-        'kualitas_oli': 80,
-        'kecelakaan': 'Tidak',
-        'created_at': FieldValue.serverTimestamp(),
-      });
-
-      // Dummy observasi minggu ke-1
-      await observasiRef.add({
-        'Record_No': 1,
-        'Year_of_Manufacture': 2020,
-        'Usage_Hours': 100,
-        'Load_Capacity': 5000,
-        'Actual_Load': 4200,
-        'Engine_Temperature': 90,
-        'Tire_Pressure': 35,
-        'Fuel_Consumption': 12,
-        'Battery_Status': 100,
-        'Vibration_Levels': 50,
-        'Oil_Quality': 100,
-        'Failure_History': 0,
-        'Anomalies_Detected': 0,
-        'Delivery_Times': 2,
-        'Elapsed_Days': 0,
-        'Days_Since_Last_Observation': 0,
-        'Observation_Month': now.subtract(const Duration(days: 21)).month,
-        'Observation_DayOfYear': dayOfYear(
-          now.subtract(const Duration(days: 21)),
-        ),
-        'Route_Info_Rural': 0,
-        'Route_Info_Urban': 1,
-        'Brake_Condition_Good': 1,
-        'Brake_Condition_Poor': 0,
-        'tanggal_mulai': Timestamp.fromDate(
-          now.subtract(const Duration(days: 28)),
-        ),
-        'tanggal_akhir': Timestamp.fromDate(
-          now.subtract(const Duration(days: 21)),
-        ),
-        'created_at': FieldValue.serverTimestamp(),
-      });
-
-      // Dummy observasi minggu ke-2
-      await observasiRef.add({
-        'Record_No': 2,
-        'Year_of_Manufacture': 2020,
-        'Usage_Hours': 110,
-        'Load_Capacity': 5000,
-        'Actual_Load': 4300,
-        'Engine_Temperature': 92,
-        'Tire_Pressure': 34,
-        'Fuel_Consumption': 13,
-        'Battery_Status': 100,
-        'Vibration_Levels': 50,
-        'Oil_Quality': 100,
-        'Failure_History': 0,
-        'Anomalies_Detected': 0,
-        'Delivery_Times': 2,
-        'Elapsed_Days': 7,
-        'Days_Since_Last_Observation': 7,
-        'Observation_Month': now.subtract(const Duration(days: 14)).month,
-        'Observation_DayOfYear': dayOfYear(
-          now.subtract(const Duration(days: 14)),
-        ),
-        'Route_Info_Rural': 0,
-        'Route_Info_Urban': 1,
-        'Brake_Condition_Good': 1,
-        'Brake_Condition_Poor': 0,
-        'tanggal_mulai': Timestamp.fromDate(
-          now.subtract(const Duration(days: 21)),
-        ),
-        'tanggal_akhir': Timestamp.fromDate(
-          now.subtract(const Duration(days: 14)),
-        ),
-        'created_at': FieldValue.serverTimestamp(),
-      });
-
-      // Dummy observasi minggu ke-3
-      await observasiRef.add({
-        'Record_No': 3,
-        'Year_of_Manufacture': 2020,
-        'Usage_Hours': 120,
-        'Load_Capacity': 5000,
-        'Actual_Load': 4400,
-        'Engine_Temperature': 95,
-        'Tire_Pressure': 33,
-        'Fuel_Consumption': 14,
-        'Battery_Status': 100,
-        'Vibration_Levels': 50,
-        'Oil_Quality': 100,
-        'Failure_History': 0,
-        'Anomalies_Detected': 0,
-        'Delivery_Times': 2,
-        'Elapsed_Days': 14,
-        'Days_Since_Last_Observation': 7,
-        'Observation_Month': now.subtract(const Duration(days: 7)).month,
-        'Observation_DayOfYear': dayOfYear(
-          now.subtract(const Duration(days: 7)),
-        ),
-        'Route_Info_Rural': 0,
-        'Route_Info_Urban': 1,
-        'Brake_Condition_Good': 1,
-        'Brake_Condition_Poor': 0,
-        'tanggal_mulai': Timestamp.fromDate(
-          now.subtract(const Duration(days: 14)),
-        ),
-        'tanggal_akhir': Timestamp.fromDate(
-          now.subtract(const Duration(days: 7)),
-        ),
-        'created_at': FieldValue.serverTimestamp(),
-      });
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Dummy data berhasil dibuat di Firebase")),
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Gagal membuat dummy data: $e")));
-    }
   }
 
   List<String> getRekomendasiPerbaikan({
@@ -402,7 +159,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
   final FirebaseRangeService rangeService = FirebaseRangeService();
 
   final RulApiService rulApiService = RulApiService(
-    baseUrl: 'http://192.168.18.223:5000',
+    baseUrl: 'http://10.0.2.2:5000',
   );
   int dayOfYear(DateTime date) {
     final startOfYear = DateTime(date.year, 1, 1);
@@ -594,11 +351,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
     };
   }
 
-  Future<void> createDummyAndRunPrediction() async {
-    await createDummyFirebaseData();
-    await runPrediction();
-  }
-
   Future<void> runPrediction() async {
     try {
       setState(() {
@@ -765,7 +517,11 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
     }
   }
 
-  Widget detailItem(String title, dynamic value) {
+  Widget detailItem(
+    String title,
+    dynamic value, {
+    Color valueColor = Colors.black,
+  }) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -834,7 +590,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
               const SizedBox(height: 12),
 
               Text(
-                "Estimasi Sisa Pakai: ${formatEstimasi(estimasi)}",
+                "Estimasi Sisa Pakai: ${estimasi?.round() ?? 0} hari",
                 style: const TextStyle(fontSize: 14, color: Colors.black),
               ),
 
@@ -908,25 +664,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
                 ),
               ),
               const SizedBox(height: 10),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    minimumSize: const Size(double.infinity, 48),
-                  ),
-                  onPressed: isPredicting ? null : createDummyAndRunPrediction,
-                  icon: const Icon(Icons.add_box, color: Colors.white),
-                  label: const Text(
-                    "Buat Dummy + Simpan RUL",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         );
@@ -965,7 +702,11 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
             detailItem("Kapasitas Muatan", kendaraan['kapasitas_muatan']),
             detailItem("Total Jam Operasi", kendaraan['total_jam_operasi']),
             detailItem("Estimasi Masa Pakai", kendaraan['estimasi_masa_pakai']),
-            detailItem("Status RUL", kendaraan['status_rul']),
+            detailItem(
+              "Status RUL",
+              kendaraan['status_rul'],
+              valueColor: getStatusColor(kendaraan['status_rul']),
+            ),
           ],
         ),
       ),
