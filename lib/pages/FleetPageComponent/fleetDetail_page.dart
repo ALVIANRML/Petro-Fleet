@@ -61,105 +61,14 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
     return result ?? defaultValue;
   }
 
-  List<String> getRekomendasiPerbaikan({
-    required Map<String, dynamic> observation,
-    required String statusRul,
-  }) {
-    List<String> rekomendasi = [];
-
-    final engineTemp =
-        double.tryParse(observation['Engine_Temperature'].toString()) ?? 0;
-
-    final tirePressure =
-        double.tryParse(observation['Tire_Pressure'].toString()) ?? 0;
-
-    final fuelConsumption =
-        double.tryParse(observation['Fuel_Consumption'].toString()) ?? 0;
-
-    final batteryStatus =
-        double.tryParse(observation['Battery_Status'].toString()) ?? 0;
-
-    final vibrationLevels =
-        double.tryParse(observation['Vibration_Levels'].toString()) ?? 0;
-
-    final oilQuality =
-        double.tryParse(observation['Oil_Quality'].toString()) ?? 0;
-
-    final brakeGood = observation['Brake_Condition_Good'] ?? 0;
-    final brakePoor = observation['Brake_Condition_Poor'] ?? 0;
-
-    final failureHistory = observation['Failure_History'] ?? 0;
-    final anomaliesDetected = observation['Anomalies_Detected'] ?? 0;
-
-    if (engineTemp >= 110) {
-      rekomendasi.add("Periksa sistem pendingin mesin dan radiator");
-    }
-
-    if (tirePressure < 30) {
-      rekomendasi.add("Periksa dan tambah tekanan ban");
-    }
-
-    if (tirePressure > 40) {
-      rekomendasi.add("Kurangi tekanan ban agar sesuai standar");
-    }
-
-    if (fuelConsumption > 15) {
-      rekomendasi.add("Periksa sistem bahan bakar dan efisiensi mesin");
-    }
-
-    if (batteryStatus <= 50) {
-      rekomendasi.add("Periksa atau ganti baterai kendaraan");
-    }
-
-    if (vibrationLevels >= 50) {
-      rekomendasi.add(
-        "Periksa getaran mesin, bearing, dan kaki-kaki kendaraan",
-      );
-    }
-
-    if (oilQuality <= 50) {
-      rekomendasi.add("Ganti oli mesin");
-    }
-
-    if (brakePoor == 1) {
-      rekomendasi.add("Periksa atau ganti sistem rem");
-    }
-
-    if (brakeGood == 0 && brakePoor == 0) {
-      rekomendasi.add("Lakukan pengecekan kondisi rem secara berkala");
-    }
-
-    if (failureHistory == 1) {
-      rekomendasi.add(
-        "Lakukan inspeksi menyeluruh karena ada riwayat kerusakan",
-      );
-    }
-
-    if (anomaliesDetected == 1) {
-      rekomendasi.add(
-        "Periksa anomali kendaraan berdasarkan data service terakhir",
-      );
-    }
-
-    if (statusRul.contains("Merah")) {
-      rekomendasi.add("Prioritaskan kendaraan untuk perawatan segera");
-    } else if (statusRul.contains("Jingga")) {
-      rekomendasi.add("Jadwalkan perawatan preventif dalam waktu dekat");
-    } else if (statusRul.contains("Hijau")) {
-      rekomendasi.add("Kendaraan masih aman, lanjutkan monitoring rutin");
-    }
-
-    if (rekomendasi.isEmpty) {
-      rekomendasi.add("Tidak ada perbaikan khusus, lakukan perawatan rutin");
-    }
-
-    return rekomendasi;
-  }
-
   final FirebaseRangeService rangeService = FirebaseRangeService();
 
   final RulApiService rulApiService = RulApiService(
-    baseUrl: 'http://10.0.2.2:5000',
+    //base url hp bisa berganti ganti
+    baseUrl: 'http://192.168.100.4:5000',
+
+    // base url emulator
+    // baseUrl: 'http://10.0.2.2:5000',
   );
   int dayOfYear(DateTime date) {
     final startOfYear = DateTime(date.year, 1, 1);
@@ -321,6 +230,14 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
 
       'Brake_Condition_Good': brakeCondition >= 80 ? 1 : 0,
       'Brake_Condition_Poor': brakeCondition <= 40 ? 1 : 0,
+
+      // Tambahan untuk model Maintenance Type
+      'Weather_Conditions_Rainy': 0,
+      'Weather_Conditions_Snowy': 0,
+      'Weather_Conditions_Windy': 0,
+
+      'Road_Conditions_Rural': 0,
+      'Road_Conditions_Urban': 1,
     };
   }
 
@@ -348,6 +265,13 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
       'Route_Info_Urban': data['Route_Info_Urban'],
       'Brake_Condition_Good': data['Brake_Condition_Good'],
       'Brake_Condition_Poor': data['Brake_Condition_Poor'],
+
+      // Tambahan untuk prediksi Maintenance Type
+      'Weather_Conditions_Rainy': data['Weather_Conditions_Rainy'] ?? 0,
+      'Weather_Conditions_Snowy': data['Weather_Conditions_Snowy'] ?? 0,
+      'Weather_Conditions_Windy': data['Weather_Conditions_Windy'] ?? 0,
+      'Road_Conditions_Rural': data['Road_Conditions_Rural'] ?? 0,
+      'Road_Conditions_Urban': data['Road_Conditions_Urban'] ?? 1,
     };
   }
 
@@ -459,12 +383,13 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
 
       final prediksiRulHari = (result['prediksi_rul_hari'] as num).toDouble();
       final status = result['status'].toString();
-      final latestObservation = observations.last;
 
-      final rekomendasiPerbaikan = getRekomendasiPerbaikan(
-        observation: latestObservation,
-        statusRul: status,
-      );
+      final prediksiKerusakan =
+          result['prediksi_maintenance']?.toString() ?? '-';
+
+      final confidenceMaintenance = result['confidence_maintenance'] is num
+          ? (result['confidence_maintenance'] as num).toDouble()
+          : 0.0;
 
       await FirebaseFirestore.instance
           .collection('kendaraan')
@@ -473,7 +398,8 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
             'estimasi_masa_pakai': prediksiRulHari,
             'rul_hari': prediksiRulHari,
             'status_rul': status,
-            'prediksi_perbaikan': rekomendasiPerbaikan,
+            'prediksi_kerusakan': prediksiKerusakan,
+            'confidence_maintenance': confidenceMaintenance,
             'last_prediction_at': FieldValue.serverTimestamp(),
             'last_prediction_start': Timestamp.fromDate(startDate),
             'last_prediction_end': Timestamp.fromDate(endDate),
@@ -485,7 +411,8 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
           .add({
             'prediksi_rul_hari': prediksiRulHari,
             'status': status,
-            'prediksi_perbaikan': rekomendasiPerbaikan,
+            'prediksi_kerusakan': prediksiKerusakan,
+            'confidence_maintenance': confidenceMaintenance,
             'tanggal_mulai': Timestamp.fromDate(startDate),
             'tanggal_selesai': Timestamp.fromDate(endDate),
             'created_at': FieldValue.serverTimestamp(),
@@ -496,7 +423,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Prediksi berhasil: ${prediksiRulHari.toStringAsFixed(2)} hari - $status",
+            "Prediksi berhasil: ${prediksiRulHari.toStringAsFixed(2)} hari - $status - $prediksiKerusakan",
           ),
         ),
       );
@@ -566,7 +493,8 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
 
         final estimasi = data?['estimasi_masa_pakai'];
         final status = data?['status_rul'];
-        final prediksiPerbaikan = data?['prediksi_perbaikan'];
+        final prediksiKerusakan = data?['prediksi_kerusakan'];
+        final confidenceMaintenance = data?['confidence_maintenance'];
 
         return Container(
           width: double.infinity,
@@ -608,7 +536,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
               const SizedBox(height: 12),
 
               const Text(
-                "Prediksi Perbaikan:",
+                "Prediksi Kerusakan/Perawatan:",
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -618,21 +546,21 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
 
               const SizedBox(height: 6),
 
-              if (prediksiPerbaikan is List)
-                ...prediksiPerbaikan.map(
-                  (item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      "• $item",
-                      style: const TextStyle(fontSize: 13, color: Colors.black),
-                    ),
-                  ),
-                )
-              else
-                const Text(
-                  "-",
-                  style: TextStyle(fontSize: 13, color: Colors.black),
+              Text(
+                prediksiKerusakan?.toString() ?? "-",
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                "Confidence: ${confidenceMaintenance is num ? (confidenceMaintenance * 100).toStringAsFixed(2) : "0.00"}%",
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
+              ),
 
               const SizedBox(height: 14),
 

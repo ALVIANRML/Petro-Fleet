@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pertro_fleet/pages/fungsi/RupiahInputFormatter.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_perjalanan.dart';
+import 'package:latlong2/latlong.dart';
 
 const String kStatusInTransit = 'in_transit';
 const String kStatusOnTrip = 'on_trip';
@@ -29,6 +30,27 @@ class DetailPerjalananPage extends StatefulWidget {
 }
 
 class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
+  LatLng? parseLocation(dynamic lokasi) {
+    if (lokasi is GeoPoint) return LatLng(lokasi.latitude, lokasi.longitude);
+    if (lokasi is Map) {
+      final lat = lokasi['latitude'];
+      final lng = lokasi['longitude'];
+      if (lat != null && lng != null)
+        return LatLng(
+          double.parse(lat.toString()),
+          double.parse(lng.toString()),
+        );
+    }
+    if (lokasi is List && lokasi.length == 2)
+      return LatLng(
+        double.parse(lokasi[0].toString()),
+        double.parse(lokasi[1].toString()),
+      );
+    return null;
+  }
+
+  LatLng? getLokasiBerangkat(Map<String, dynamic> data) =>
+      parseLocation(data['lokasi_berangkat']);
   final TextEditingController muatanDiterimaController =
       TextEditingController();
   final TextEditingController tanggalTibaController = TextEditingController();
@@ -305,6 +327,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
   }
 
   Future<void> _approveCompleted(BuildContext context) async {
+    // Konfirmasi admin
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -325,6 +348,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
 
     if (confirm != true) return;
 
+    // Validasi input muatan & tanggal tiba
     if (muatanDiterimaController.text.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -343,52 +367,56 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
       return;
     }
 
-    final kendaraanDoc = await FirebaseFirestore.instance
-        .collection('kendaraan')
-        .doc(widget.kendaraanId)
-        .get();
-
-    final lastLat = kendaraanDoc.data()?['last_lat'];
-    final lastLng = kendaraanDoc.data()?['last_lng'];
-
     final perjalananSnapshot = await docRef.get();
     final perjalananData = perjalananSnapshot.data() as Map<String, dynamic>?;
 
-    final driverApprovedAt = perjalananData?['driver_approved_at'];
+    if (perjalananData == null) return;
 
-    final Timestamp adminCompletedAt = Timestamp.now();
+    final driverApprovedAt = perjalananData['driver_approved_at'];
+    final adminCompletedAt = Timestamp.now();
 
+    // Hitung usage hours
     double usageHours = 0;
-
     if (driverApprovedAt is Timestamp) {
       final startTime = driverApprovedAt.toDate();
       final endTime = adminCompletedAt.toDate();
-
-      final duration = endTime.difference(startTime);
-
-      usageHours = double.parse((duration.inMinutes / 60).toStringAsFixed(2));
+      usageHours = double.parse(
+        (endTime.difference(startTime).inMinutes / 60).toStringAsFixed(2),
+      );
     }
 
+    // Ambil posisi terakhir dari tracking
+    final trackingSnapshot = await docRef
+        .collection('tracking')
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .get();
+
+    LatLng? lastPosition;
+    if (trackingSnapshot.docs.isNotEmpty) {
+      final pos = trackingSnapshot.docs.first.data()['posisi'];
+      lastPosition = parseLocation(pos);
+    }
+
+    // Update dokumen perjalanan
     await docRef.update({
       'status': kStatusCompleted,
       'approved_arrival': true,
-
       'total_muatan_diterima': int.parse(
         muatanDiterimaController.text.replaceAll('.', ''),
       ),
-
       'tanggal_tiba': tanggalTibaController.text,
-
-      // Waktu admin complete / selesai perjalanan
       'admin_completed_at': adminCompletedAt,
       'waktu_selesai': adminCompletedAt,
-
-      // Lama penggunaan kendaraan dalam jam
       'usage_hours': usageHours,
-
-      'lokasi_akhir': lastLat != null && lastLng != null
-          ? {'latitude': lastLat, 'longitude': lastLng}
-          : null,
+      'lokasi_akhir': lastPosition != null
+          ? {
+              'latitude': lastPosition.latitude,
+              'longitude': lastPosition.longitude,
+            }
+          : getLokasiBerangkat(
+              perjalananData,
+            ), // fallback kalau tracking kosong
     });
 
     if (context.mounted) Navigator.pop(context, true);

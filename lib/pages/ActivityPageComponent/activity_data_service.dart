@@ -39,6 +39,21 @@ class DataServicePageState extends State<DataServicePage> {
     return allData;
   }
 
+  String formatTanggal(dynamic value) {
+    if (value == null) return "-";
+
+    if (value is Timestamp) {
+      final date = value.toDate();
+      return "${date.day}-${date.month}-${date.year}";
+    }
+
+    if (value is DateTime) {
+      return "${value.day}-${value.month}-${value.year}";
+    }
+
+    return value.toString();
+  }
+
   Future<void> pickDate(BuildContext context) async {
     final now = DateTime.now();
     final DateTime? picked = await showDatePicker(
@@ -315,8 +330,9 @@ class DataServicePageState extends State<DataServicePage> {
                     itemCount: docs.length,
                     itemBuilder: (context, index) {
                       final data = docs[index];
+
                       final platKendaraan = data['plat_kendaraan'] ?? '-';
-                      final tanggal = data['tanggal_perbaikan'] ?? '-';
+                      final tanggal = formatTanggal(data['tanggal_perbaikan']);
                       final jenisService = data['jenis_kerusakan'] ?? '-';
                       final docId = data['id'] ?? '';
                       final kendaraanId = data['kendaraan_id'] ?? '';
@@ -335,7 +351,7 @@ class DataServicePageState extends State<DataServicePage> {
                                 Expanded(
                                   flex: 2,
                                   child: Text(
-                                    platKendaraan,
+                                    platKendaraan.toString(),
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(color: Colors.white),
                                   ),
@@ -351,7 +367,7 @@ class DataServicePageState extends State<DataServicePage> {
                                 Expanded(
                                   flex: 2,
                                   child: Text(
-                                    jenisService,
+                                    jenisService.toString(),
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(color: Colors.white),
                                   ),
@@ -375,7 +391,6 @@ class DataServicePageState extends State<DataServicePage> {
                                               ),
                                         ),
                                       ).then((_) {
-                                        // Refresh data setelah kembali dari detail
                                         setState(() {});
                                       });
                                     },
@@ -383,7 +398,6 @@ class DataServicePageState extends State<DataServicePage> {
                                 ),
                               ],
                             ),
-
                             const Divider(color: Colors.white24),
                           ],
                         ),

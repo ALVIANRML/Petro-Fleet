@@ -108,15 +108,19 @@ class _MapPageAdminState extends State<MapPageAdmin> {
         LatLng? posisiTerakhir;
 
         if (status == 'on_trip') {
+          print("ini status on trip $status");
           posisiTerakhir = await getLastTrackingPosition(
             kendaraanId,
             perjalananDoc.id,
           );
           posisiTerakhir ??= getLokasiBerangkat(perjalananData);
-        } else if (status == 'complete') {
+        } else if (status == 'complete' || status == 'completed') {
+          print("ini status complete $perjalananData");
+          print("ini status complete $status");
           posisiTerakhir = getLokasiAkhir(perjalananData);
         } else {
           posisiTerakhir = getLokasiBerangkat(perjalananData);
+          print("ini status in transit $status");
         }
 
         if (posisiTerakhir != null) {
@@ -155,13 +159,13 @@ class _MapPageAdminState extends State<MapPageAdmin> {
   // ===== UI Helper =====
   Color getMarkerColor(String status) {
     if (status == 'on_trip') return Colors.blue;
-    if (status == 'complete') return Colors.green;
+    if (status == 'completed') return Colors.green;
     return Colors.orange;
   }
 
   String getStatusLabel(String status) {
     if (status == 'on_trip') return 'On Trip';
-    if (status == 'complete') return 'Complete';
+    if (status == 'completed') return 'Complete';
     return 'In Transit';
   }
 
@@ -293,22 +297,6 @@ class _MapPageAdminState extends State<MapPageAdmin> {
               color: Colors.black.withOpacity(0.2),
               child: const Center(child: CircularProgressIndicator()),
             ),
-          Positioned(
-            top: 12,
-            left: 12,
-            right: 12,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.95),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                "Jumlah kendaraan tampil: ${kendaraanMarkers.length}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
         ],
       ),
     );
