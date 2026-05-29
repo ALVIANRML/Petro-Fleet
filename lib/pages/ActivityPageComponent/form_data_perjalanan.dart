@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:pertro_fleet/pages/import_excel_page.dart';
 import 'package:pertro_fleet/pages/fungsi/RupiahInputFormatter.dart';
 
 class FormDataPerjalanan extends StatefulWidget {
@@ -83,16 +84,42 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
     try {
       print(selectedSupir);
 
+      double konversiLiterKeKg(String jenisMuatan, int jumlahLiter) {
+        final jenis = jenisMuatan.toLowerCase();
+
+        if (jenis.contains('bensin')) {
+          return jumlahLiter * 0.74;
+        } else if (jenis.contains('solar') || jenis.contains('diesel')) {
+          return jumlahLiter * 0.85;
+        } else if (jenis.contains('air')) {
+          return jumlahLiter * 1.0;
+        } else {
+          return jumlahLiter * 1.0;
+        }
+      }
+
       final muatanData = muatanList.map((m) {
+        final jenisMuatan = m['jenis']!.text;
+        final jumlahMuatan = int.parse(m['jumlah']!.text.replaceAll('.', ''));
+
+        final beratKg = konversiLiterKeKg(jenisMuatan, jumlahMuatan);
+
         return {
-          'jenis_muatan': m['jenis']!.text,
-          'jumlah_muatan': int.parse(m['jumlah']!.text.replaceAll('.', '')),
+          'jenis_muatan': jenisMuatan,
+          'jumlah_muatan': jumlahMuatan,
+          'satuan_awal': 'liter',
+          'berat_kg': beratKg,
         };
       }).toList();
 
       final totalMuatan = muatanData.fold<int>(
         0,
         (total, item) => total + (item['jumlah_muatan'] as int),
+      );
+
+      final totalBeratKg = muatanData.fold<double>(
+        0,
+        (total, item) => total + (item['berat_kg'] as double),
       );
 
       final data = {
@@ -104,6 +131,7 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
         'uang_bensin': int.parse(uangBensinController.text.replaceAll('.', '')),
         'tanggal': Timestamp.fromDate(selectedTanggalBerangkat!),
         'id_pengemudi': selectedSupir,
+        'total_berat_kg': totalBeratKg,
       };
 
       if (isEdit) {
@@ -242,6 +270,36 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ImportExcelPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.upload_file, color: Colors.white),
+                label: const Text(
+                  "Import Data dari Excel",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
             const Text("Nama Pengemudi", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             StreamBuilder<QuerySnapshot>(
@@ -383,7 +441,7 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
                         style: const TextStyle(color: Colors.black),
                         decoration: _inputDecoration(
                           "Masukkan Jumlah Muatan",
-                        ).copyWith(suffixText: "Kg"),
+                        ).copyWith(suffixText: "Liter"),
                       ),
                     ],
                   ),

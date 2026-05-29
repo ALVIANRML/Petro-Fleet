@@ -65,10 +65,10 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
 
   final RulApiService rulApiService = RulApiService(
     //base url hp bisa berganti ganti
-    baseUrl: 'http://192.168.100.4:5000',
+    // baseUrl: 'http://192.168.100.10:5000',
 
     // base url emulator
-    // baseUrl: 'http://10.0.2.2:5000',
+    baseUrl: 'http://10.0.2.2:5000',
   );
   int dayOfYear(DateTime date) {
     final startOfYear = DateTime(date.year, 1, 1);
@@ -120,10 +120,18 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
       defaultValue: 2020,
     );
 
-    final usageHours = getDoubleValue(
+    double usageHours = getDoubleValue(
       kendaraan['total_jam_operasi'],
       defaultValue: 0.0,
     );
+
+    if (perjalanan.isNotEmpty) {
+      usageHours = perjalanan.fold<double>(
+        0.0,
+        (total, item) =>
+            total + getDoubleValue(item['usage_hours'], defaultValue: 0.0),
+      );
+    }
 
     final loadCapacity = getDoubleValue(
       kendaraan['kapasitas_muatan'],
@@ -281,8 +289,8 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
         isPredicting = true;
       });
 
-      final endDate = DateTime.now();
-      final startDate = endDate.subtract(const Duration(days: 7));
+      final startDate = DateTime(2025, 1, 1);
+      final endDate = DateTime(2026, 12, 31);
 
       final perjalanan = await rangeService.getPerjalananByRange(
         kendaraanId: widget.kendaraanId,
@@ -373,10 +381,8 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
           .reversed
           .toList();
 
-      if (observations.length < 3) {
-        throw Exception(
-          "Data observasi belum cukup. Minimal butuh 3 minggu data.",
-        );
+      if (observations.isEmpty) {
+        throw Exception("Data observasi kosong.");
       }
 
       final result = await rulApiService.predictRul(observations);
@@ -387,10 +393,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
       final prediksiKerusakan =
           result['prediksi_maintenance']?.toString() ?? '-';
 
-      final confidenceMaintenance = result['confidence_maintenance'] is num
-          ? (result['confidence_maintenance'] as num).toDouble()
-          : 0.0;
-
       await FirebaseFirestore.instance
           .collection('kendaraan')
           .doc(widget.kendaraanId)
@@ -399,7 +401,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
             'rul_hari': prediksiRulHari,
             'status_rul': status,
             'prediksi_kerusakan': prediksiKerusakan,
-            'confidence_maintenance': confidenceMaintenance,
             'last_prediction_at': FieldValue.serverTimestamp(),
             'last_prediction_start': Timestamp.fromDate(startDate),
             'last_prediction_end': Timestamp.fromDate(endDate),
@@ -412,7 +413,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
             'prediksi_rul_hari': prediksiRulHari,
             'status': status,
             'prediksi_kerusakan': prediksiKerusakan,
-            'confidence_maintenance': confidenceMaintenance,
             'tanggal_mulai': Timestamp.fromDate(startDate),
             'tanggal_selesai': Timestamp.fromDate(endDate),
             'created_at': FieldValue.serverTimestamp(),
@@ -494,7 +494,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
         final estimasi = data?['estimasi_masa_pakai'];
         final status = data?['status_rul'];
         final prediksiKerusakan = data?['prediksi_kerusakan'];
-        final confidenceMaintenance = data?['confidence_maintenance'];
 
         return Container(
           width: double.infinity,
@@ -557,11 +556,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
 
               const SizedBox(height: 6),
 
-              Text(
-                "Confidence: ${confidenceMaintenance is num ? (confidenceMaintenance * 100).toStringAsFixed(2) : "0.00"}%",
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
-              ),
-
               const SizedBox(height: 14),
 
               SizedBox(
@@ -583,7 +577,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
                         )
                       : const Icon(Icons.analytics, color: Colors.white),
                   label: Text(
-                    isPredicting ? "Memproses..." : "Jalankan Prediksi ML",
+                    isPredicting ? "Memproses..." : "Lakukan Prediksi",
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -628,13 +622,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
             detailItem("Jenis Kendaraan", "Truck"),
             detailItem("Tahun Produksi", kendaraan['tahun_produksi']),
             detailItem("Kapasitas Muatan", kendaraan['kapasitas_muatan']),
-            detailItem("Total Jam Operasi", kendaraan['total_jam_operasi']),
-            detailItem("Estimasi Masa Pakai", kendaraan['estimasi_masa_pakai']),
-            detailItem(
-              "Status RUL",
-              kendaraan['status_rul'],
-              valueColor: getStatusColor(kendaraan['status_rul']),
-            ),
           ],
         ),
       ),

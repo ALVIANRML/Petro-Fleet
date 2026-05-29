@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pertro_fleet/pages/ProfilePageComponent/editProfile_page.dart';
 import 'package:pertro_fleet/pages/ProfilePageComponent/listPengguna_page.dart';
 import '../login_page.dart';
-import 'package:pertro_fleet/pages/ProfilePageComponent/Setting_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -165,33 +164,33 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
               ),
-            if (jabatan != "Sopir")
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD9D9D9),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  leading: const Icon(Icons.settings, color: Colors.black),
-                  title: const Text(
-                    "Settings",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  trailing: const Icon(Icons.arrow_forward, size: 16),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FormSettingProfile(),
-                      ),
-                    );
-                  },
-                ),
-              ),
+            // if (jabatan != "Sopir")
+            //   Container(
+            //     margin: const EdgeInsets.symmetric(vertical: 6),
+            //     decoration: BoxDecoration(
+            //       color: const Color(0xFFD9D9D9),
+            //       borderRadius: BorderRadius.circular(12),
+            //     ),
+            //     child: ListTile(
+            //       leading: const Icon(Icons.settings, color: Colors.black),
+            //       title: const Text(
+            //         "Settings",
+            //         style: TextStyle(
+            //           color: Colors.black,
+            //           fontWeight: FontWeight.bold,
+            //         ),
+            //       ),
+            //       trailing: const Icon(Icons.arrow_forward, size: 16),
+            //       onTap: () {
+            //         Navigator.push(
+            //           context,
+            //           MaterialPageRoute(
+            //             builder: (context) => const FormSettingProfile(),
+            //           ),
+            //         );
+            //       },
+            //     ),
+            //   ),
             Container(
               margin: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(

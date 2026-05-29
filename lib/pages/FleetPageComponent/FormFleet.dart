@@ -13,86 +13,117 @@ class FormFleetPage extends StatefulWidget {
 class _FormFleetPageState extends State<FormFleetPage> {
   final TextEditingController platController = TextEditingController();
   final TextEditingController muatanController = TextEditingController();
+
   String? selectedModelKendaraan;
   String? selectedJenisBahanBakar;
   String? selectedUsiaKendaraan;
   String? selectedKapasitasMesin;
   String? selectedTahunProduksi;
+
   final List<String> modelKendaraan = [
     "Fuso 1050",
     "Mercedez-Benz 1040",
     "Hyundai 1890",
   ];
+
   final List<String> kapasitasMesin = ["220cc", "230", "420"];
   final List<String> tahunProduksi = ["2004", "2005", "2006"];
   final List<String> usiaKendaraan = ["Tidak Tau", "20", "30"];
   final List<String> jenisBahanBakar = ["Bensin", "Solar"];
 
-  Future<void> tambahKendaraanFunction(BuildContext context) async {
+  void showPesan(String pesan) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(pesan)));
+  }
+
+  Future<void> tambahKendaraanFunction() async {
     if (platController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Plat Kendaraan belum diisi")));
+      showPesan("Plat Kendaraan belum diisi");
+      return;
     }
-    if (selectedJenisBahanBakar == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Model kendaraan belum dipilih")));
+
+    if (selectedModelKendaraan == null) {
+      showPesan("Model kendaraan belum dipilih");
+      return;
     }
+
     if (selectedUsiaKendaraan == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Usia Kendaraan belum dipilih")));
+      showPesan("Usia Kendaraan belum dipilih");
+      return;
     }
+
     if (selectedTahunProduksi == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Tahun Produksi belum dipilih")));
+      showPesan("Tahun Produksi belum dipilih");
+      return;
     }
+
     if (selectedJenisBahanBakar == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Jenis Bahan Bakar belum dipilih")),
-      );
+      showPesan("Jenis Bahan Bakar belum dipilih");
+      return;
     }
+
     if (selectedKapasitasMesin == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Kapasitas Mesin belum dipilih")));
+      showPesan("Kapasitas Mesin belum dipilih");
+      return;
     }
+
     if (muatanController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Kapasitas Muatan belum diisi")));
+      showPesan("Kapasitas Muatan belum diisi");
+      return;
     }
+
     try {
       await FirebaseFirestore.instance.collection('kendaraan').add({
-        'plat_kendaraan': platController.text,
+        'plat_kendaraan': platController.text.trim(),
         'model_kendaraan': selectedModelKendaraan,
         'jenis_bahan_bakar': selectedJenisBahanBakar,
         'usia_kendaraan': selectedUsiaKendaraan,
         'kapasitas_mesin': selectedKapasitasMesin,
-        'kapasitas_muatan': muatanController.text,
+        'kapasitas_muatan': muatanController.text.trim(),
         'tahun_produksi': selectedTahunProduksi,
         'estimasi_masa_pakai': null,
         'odometer_kendaraan': 0,
         'total_jam_operasi': 0,
         'created_at': Timestamp.now(),
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Data berhasil ditambahkan")),
-      );
 
-      Future.delayed(const Duration(seconds: 1), () {
-        Navigator.pop(context);
-      });
+      if (!mounted) return;
+
+      showPesan("Data berhasil ditambahkan");
+
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
     } catch (e) {
-      {
-        print("Error $e");
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Gagal menambahkan data")));
-      }
+      print("Error tambah kendaraan: $e");
+
+      if (!mounted) return;
+
+      showPesan("Gagal menambahkan data");
     }
+  }
+
+  @override
+  void dispose() {
+    platController.dispose();
+    muatanController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.black.withOpacity(0.5)),
+      filled: true,
+      fillColor: const Color(0xFFD9D9D9),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
+      ),
+    );
   }
 
   @override
@@ -103,7 +134,10 @@ class _FormFleetPageState extends State<FormFleetPage> {
         backgroundColor: const Color(0xFF0B4996),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (!mounted) return;
+            Navigator.of(context).pop();
+          },
         ),
         title: const Text(
           "Tambah Kendaraan",
@@ -116,7 +150,6 @@ class _FormFleetPageState extends State<FormFleetPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // plat kendaraan
             const Text("Plat Kendaraan", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             TextField(
@@ -124,70 +157,84 @@ class _FormFleetPageState extends State<FormFleetPage> {
               style: const TextStyle(color: Colors.black),
               decoration: _inputDecoration("Plat Kendaraan"),
             ),
-            SizedBox(height: 10),
 
-            // Model kendaraan
+            const SizedBox(height: 10),
+
             const Text(
               "Model Kendaraan",
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: selectedModelKendaraan,
-              dropdownColor: const Color(0xFFFFFFFF),
+              dropdownColor: Colors.white,
               decoration: _inputDecoration("Pilih Model Kendaraan"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-              items: modelKendaraan.map((posisi) {
-                return DropdownMenuItem(value: posisi, child: Text(posisi));
+              items: modelKendaraan.map((model) {
+                return DropdownMenuItem(value: model, child: Text(model));
               }).toList(),
-              onChanged: (val) => setState(() => selectedModelKendaraan = val),
+              onChanged: (val) {
+                if (!mounted) return;
+                setState(() {
+                  selectedModelKendaraan = val;
+                });
+              },
             ),
 
-            SizedBox(height: 10),
-            const Text(
-              "Usia Kendaraan",
-              style: const TextStyle(color: Colors.white),
-            ),
+            const SizedBox(height: 10),
+
+            const Text("Usia Kendaraan", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: selectedUsiaKendaraan,
-              dropdownColor: const Color(0xFFFFFFFF),
+              dropdownColor: Colors.white,
               decoration: _inputDecoration("Pilih Usia Kendaraan"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               items: usiaKendaraan.map((usia) {
                 return DropdownMenuItem(value: usia, child: Text(usia));
               }).toList(),
-              onChanged: (val) => setState(() => selectedUsiaKendaraan = val),
+              onChanged: (val) {
+                if (!mounted) return;
+                setState(() {
+                  selectedUsiaKendaraan = val;
+                });
+              },
             ),
-            SizedBox(height: 10),
-            const Text(
-              "Tahun Produksi",
-              style: const TextStyle(color: Colors.white),
-            ),
+
+            const SizedBox(height: 10),
+
+            const Text("Tahun Produksi", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: selectedTahunProduksi,
-              dropdownColor: const Color(0xFFFFFFFF),
-              decoration: _inputDecoration("Pilih Model Kendaraan"),
+              dropdownColor: Colors.white,
+              decoration: _inputDecoration("Pilih Tahun Produksi"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               items: tahunProduksi.map((tahun) {
                 return DropdownMenuItem(value: tahun, child: Text(tahun));
               }).toList(),
-              onChanged: (val) => setState(() => selectedTahunProduksi = val),
+              onChanged: (val) {
+                if (!mounted) return;
+                setState(() {
+                  selectedTahunProduksi = val;
+                });
+              },
             ),
-            SizedBox(height: 10),
+
+            const SizedBox(height: 10),
+
             const Text(
               "Jenis Bahan Bakar",
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: selectedJenisBahanBakar,
-              dropdownColor: const Color(0xFFFFFFFF),
-              decoration: _inputDecoration("Pilih Model Kendaraan"),
+              dropdownColor: Colors.white,
+              decoration: _inputDecoration("Pilih Jenis Bahan Bakar"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               items: jenisBahanBakar.map((bahanBakar) {
@@ -196,27 +243,40 @@ class _FormFleetPageState extends State<FormFleetPage> {
                   child: Text(bahanBakar),
                 );
               }).toList(),
-              onChanged: (val) => setState(() => selectedJenisBahanBakar = val),
+              onChanged: (val) {
+                if (!mounted) return;
+                setState(() {
+                  selectedJenisBahanBakar = val;
+                });
+              },
             ),
-            SizedBox(height: 10),
+
+            const SizedBox(height: 10),
 
             const Text(
               "Kapasitas Mesin",
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: selectedKapasitasMesin,
-              dropdownColor: const Color(0xFFFFFFFF),
+              dropdownColor: Colors.white,
               decoration: _inputDecoration("Pilih Kapasitas Mesin"),
               style: const TextStyle(color: Colors.black),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               items: kapasitasMesin.map((mesin) {
                 return DropdownMenuItem(value: mesin, child: Text(mesin));
               }).toList(),
-              onChanged: (val) => setState(() => selectedKapasitasMesin = val),
+              onChanged: (val) {
+                if (!mounted) return;
+                setState(() {
+                  selectedKapasitasMesin = val;
+                });
+              },
             ),
-            SizedBox(height: 10),
+
+            const SizedBox(height: 10),
+
             const Text(
               "Kapasitas Muatan",
               style: TextStyle(color: Colors.white),
@@ -228,13 +288,15 @@ class _FormFleetPageState extends State<FormFleetPage> {
                 FilteringTextInputFormatter.digitsOnly,
                 RupiahInputFormatter(),
               ],
+              keyboardType: TextInputType.number,
               style: const TextStyle(color: Colors.black),
               decoration: _inputDecoration(
                 "Kapasitas Muatan",
               ).copyWith(suffixText: "kg"),
             ),
 
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
+
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -246,7 +308,7 @@ class _FormFleetPageState extends State<FormFleetPage> {
                   ),
                 ),
                 onPressed: () async {
-                  final confirm = await showDialog(
+                  final confirm = await showDialog<bool>(
                     context: context,
                     builder: (dialogContext) => AlertDialog(
                       title: const Text("Konfirmasi"),
@@ -255,21 +317,25 @@ class _FormFleetPageState extends State<FormFleetPage> {
                       ),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.pop(dialogContext, false),
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop(false);
+                          },
                           child: const Text("Batal"),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.pop(dialogContext, true),
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop(true);
+                          },
                           child: const Text("Ya"),
                         ),
                       ],
                     ),
                   );
 
+                  if (!mounted) return;
+
                   if (confirm == true) {
-                    tambahKendaraanFunction(
-                      context,
-                    ); // ✅ pakai context halaman (aman)
+                    await tambahKendaraanFunction();
                   }
                 },
                 child: const Text(
@@ -284,21 +350,6 @@ class _FormFleetPageState extends State<FormFleetPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(
-        color: Color(0xFF000000),
-      ).copyWith(color: Color(0xFF000000).withOpacity(0.5)),
-      filled: true,
-      fillColor: const Color(0xFFD9D9D9),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide.none,
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:pertro_fleet/pages/ActivityPageComponent/form_data_service.dart';
 
 class DetailServicePage extends StatefulWidget {
@@ -25,6 +26,21 @@ class _DetailServicePageState extends State<DetailServicePage> {
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (m) => '${m[1]}.',
     );
+  }
+
+  String formatTanggal(dynamic value) {
+    if (value == null) return '-';
+
+    if (value is Timestamp) {
+      final date = value.toDate();
+      return DateFormat('dd MMMM yyyy').format(date);
+    }
+
+    if (value is DateTime) {
+      return DateFormat('dd MMMM yyyy').format(value);
+    }
+
+    return value.toString();
   }
 
   Color getKondisiColor(String? kondisi) {
@@ -79,7 +95,7 @@ class _DetailServicePageState extends State<DetailServicePage> {
   @override
   Widget build(BuildContext context) {
     final platKendaraan = widget.data['plat_kendaraan'] ?? '-';
-    final tanggal = widget.data['tanggal_perbaikan'] ?? '-';
+    final tanggal = formatTanggal(widget.data['tanggal_perbaikan']);
     final jenis_kerusakan = widget.data['jenis_kerusakan'] ?? '-';
     final biayaService = widget.data['biaya_service'] ?? 0;
     final kondisiRem = widget.data['kondisi_rem'] ?? '-';
@@ -131,7 +147,7 @@ class _DetailServicePageState extends State<DetailServicePage> {
             _label('Kondisi Baterai:'),
             _value(kondisiBaterai),
             const SizedBox(height: 10),
-            _label('Terjai Kecelakaan:'),
+            _label('Terjadi Kecelakaan:'),
             _value(kecelakaan),
             const SizedBox(height: 10),
             _label('Catatan Kecelakaan:'),
