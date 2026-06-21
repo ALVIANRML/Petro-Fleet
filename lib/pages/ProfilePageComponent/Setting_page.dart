@@ -122,7 +122,6 @@ class _FormSettingProfileState extends State<FormSettingProfile> {
             ),
             const SizedBox(height: 30),
 
-            // Tombol Submit
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -144,14 +143,14 @@ class _FormSettingProfileState extends State<FormSettingProfile> {
                       actions: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(context); // tutup dialog
+                            Navigator.pop(context);
                           },
                           child: const Text("Batal"),
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pop(context); // tutup dialog dulu
-                            updateHargaMinyak(); // baru update
+                            Navigator.pop(context);
+                            updateHargaMinyak();
                           },
                           child: const Text("Ya"),
                         ),

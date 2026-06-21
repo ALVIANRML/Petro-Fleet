@@ -96,7 +96,7 @@ class DataServicePageState extends State<DataServicePage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const SizedBox(height: 10), // jarak dari atas
+            const SizedBox(height: 10),
 
             Align(
               alignment: Alignment.topLeft,
@@ -151,7 +151,7 @@ class DataServicePageState extends State<DataServicePage> {
 
                   const SizedBox(height: 10),
 
-                  // Tombol Pilih Tanggal
+               
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -277,7 +277,6 @@ class DataServicePageState extends State<DataServicePage> {
                             (() {
                               final tglRaw = data['tanggal_perbaikan'];
 
-                              // ✅ kalau Timestamp
                               if (tglRaw is Timestamp) {
                                 final d = tglRaw.toDate();
 
@@ -286,15 +285,14 @@ class DataServicePageState extends State<DataServicePage> {
                                     d.year == selectedDate!.year;
                               }
 
-                              // ✅ kalau String (format: 27-4-2026)
                               if (tglRaw is String) {
                                 try {
                                   final parts = tglRaw.split('-');
                                   if (parts.length == 3) {
                                     final d = DateTime(
-                                      int.parse(parts[2]), // year
-                                      int.parse(parts[1]), // month
-                                      int.parse(parts[0]), // day
+                                      int.parse(parts[2]),
+                                      int.parse(parts[1]),
+                                      int.parse(parts[0]),
                                     );
 
                                     return d.day == selectedDate!.day &&
@@ -316,7 +314,7 @@ class DataServicePageState extends State<DataServicePage> {
 
                         if (aTime == null || bTime == null) return 0;
 
-                        return bTime.compareTo(aTime); // 🔥 terbaru di atas
+                        return bTime.compareTo(aTime);
                       });
                   if (docs.isEmpty) {
                     return const Center(

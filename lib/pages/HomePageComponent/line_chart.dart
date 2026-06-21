@@ -13,7 +13,7 @@ class LineCharetWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Legenda
+         
           Row(
             children: [
               _buildLegend(color: Colors.green, label: 'Pendapatan'),
@@ -117,7 +117,7 @@ class LineCharetWidget extends StatelessWidget {
                   ),
                 ),
                 lineBarsData: [
-                  // Line Pendapatan (Hijau)
+                 
                   LineChartBarData(
                     spots: const [
                       FlSpot(0, 0.50),
@@ -152,7 +152,7 @@ class LineCharetWidget extends StatelessWidget {
                       color: Colors.green.withOpacity(0.06),
                     ),
                   ),
-                  // Line Pengeluaran (Merah)
+                 
                   LineChartBarData(
                     spots: const [
                       FlSpot(0, 0.00015),

@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pertro_fleet/pages/FleetPageComponent/firebase_range_service.dart';
@@ -20,195 +19,133 @@ class DetailFleetPage extends StatefulWidget {
 
 class _DetailFleetPageState extends State<DetailFleetPage> {
   bool isPredicting = false;
-  final Random random = Random();
-
-  String randomKondisi() {
-    final kondisi = ['Baik', 'Sedang', 'Buruk'];
-    return kondisi[random.nextInt(kondisi.length)];
-  }
-
-  int kondisiToScore(String kondisi) {
-    if (kondisi == 'Baik') return 100;
-    if (kondisi == 'Sedang') return 50;
-    if (kondisi == 'Buruk') return 0;
-    return 50;
-  }
-
-  double randomRange(double min, double max) {
-    return min + random.nextDouble() * (max - min);
-  }
 
   double getDoubleValue(dynamic value, {double defaultValue = 0.0}) {
     if (value == null) return defaultValue;
-
     if (value is num) return value.toDouble();
-
-    String text = value.toString().trim();
-
-    text = text.replaceAll(',', '.');
-
-    final result = double.tryParse(text);
+    final result = double.tryParse(
+      value.toString().trim().replaceAll(',', '.'),
+    );
     return result ?? defaultValue;
   }
 
   int getIntValue(dynamic value, {int defaultValue = 0}) {
     if (value == null) return defaultValue;
-
     if (value is int) return value;
     if (value is num) return value.toInt();
-
-    final result = int.tryParse(value.toString());
-    return result ?? defaultValue;
+    return int.tryParse(value.toString()) ?? defaultValue;
   }
 
   final FirebaseRangeService rangeService = FirebaseRangeService();
 
   final RulApiService rulApiService = RulApiService(
-    //base url hp bisa berganti ganti
-    // baseUrl: 'http://192.168.100.10:5000',
-
-    // base url emulator
     baseUrl: 'http://10.0.2.2:5000',
   );
-  int dayOfYear(DateTime date) {
-    final startOfYear = DateTime(date.year, 1, 1);
-    return date.difference(startOfYear).inDays + 1;
-  }
 
-  double mapBatteryStatus(String? kondisi) {
-    if (kondisi == 'Baik') return 100.0;
-    if (kondisi == 'Sedang') return 50.0;
-    if (kondisi == 'Buruk') return 0.0;
-    return 50.0;
+  int dayOfYear(DateTime date) {
+    return date.difference(DateTime(date.year, 1, 1)).inDays + 1;
   }
 
   Color getStatusColor(dynamic status) {
     final text = status?.toString() ?? '';
-
     if (text.contains('Hijau')) return Colors.green;
     if (text.contains('Jingga')) return Colors.orange;
     if (text.contains('Merah')) return Colors.red;
-
     return Colors.black;
   }
 
-  String formatEstimasi(dynamic estimasi) {
-    if (estimasi == null) return "-";
+ 
+  double _hitungActualLoad(Map<String, dynamic> perjalanan) {
 
-    if (estimasi is num) {
-      return "${estimasi.toStringAsFixed(2)} hari";
+    final totalField = getDoubleValue(perjalanan['total_jumlah_muatan']);
+    if (totalField > 0) return totalField;
+
+
+    if (perjalanan['muatan'] is List) {
+      double total = 0.0;
+      for (final item in perjalanan['muatan'] as List) {
+        if (item is Map<String, dynamic>) {
+          total += getDoubleValue(item['jumlah_muatan']);
+        }
+      }
+      if (total > 0) return total;
     }
 
-    final angka = double.tryParse(estimasi.toString());
-    if (angka == null) return "-";
-
-    return "${angka.toStringAsFixed(2)} hari";
+    return 0.0;
   }
 
-  Map<String, dynamic> buildWeeklyObservation({
+  double _hitungUsageHours(Map<String, dynamic> perjalanan) {
+    final usageHours = getDoubleValue(perjalanan['usage_hours']);
+    if (usageHours > 0) return usageHours;
+
+    final jarakKm = getDoubleValue(perjalanan['jarak_km']);
+    if (jarakKm > 0) return jarakKm / 40.0;
+
+    return 0.0;
+  }
+
+  Map<String, dynamic> buildObservation({
     required Map<String, dynamic> kendaraan,
-    required List<Map<String, dynamic>> perjalanan,
-    required List<Map<String, dynamic>> service,
-    required DateTime startDate,
-    required DateTime endDate,
+    required Map<String, dynamic> perjalanan,
+    required Map<String, dynamic>? service,
     required int recordNo,
     required int elapsedDays,
-    required int daysSinceLastObservation,
   }) {
     final tahunProduksi = getIntValue(
       kendaraan['tahun_produksi'],
       defaultValue: 2020,
     );
+    final loadCapacity = getDoubleValue(
+      kendaraan['kapasitas_muatan'],
+      defaultValue: 0.0,
+    );
+    print("ini perjalanan $perjalanan");
+    final usageHours = _hitungUsageHours(perjalanan);
+    final actualLoad = _hitungActualLoad(perjalanan);
 
-    double usageHours = getDoubleValue(
-      kendaraan['total_jam_operasi'],
+    final tanggalRaw = perjalanan['tanggal'];
+    final tanggal = tanggalRaw is Timestamp
+        ? tanggalRaw.toDate()
+        : DateTime.now();
+
+    final jarakKm = getDoubleValue(perjalanan['jarak_km']);
+    final uangBensin = getDoubleValue(perjalanan['uang_bensin']);
+
+    final brakeCondition = getDoubleValue(
+      service?['brake_condition'],
+      defaultValue: 0.0,
+    );
+    final batteryStatus = getDoubleValue(
+      service?['battery_status'],
+      defaultValue: 0.0,
+    );
+    final tirePressure = getDoubleValue(
+      service?['tire_preasure'],
+      defaultValue: 0.0,
+    );
+  
+    final fuelConsumption = getDoubleValue(
+      service?['fuel_consumption'] ?? service?['fuel_consumtion'],
       defaultValue: 0.0,
     );
 
-    if (perjalanan.isNotEmpty) {
-      usageHours = perjalanan.fold<double>(
-        0.0,
-        (total, item) =>
-            total + getDoubleValue(item['usage_hours'], defaultValue: 0.0),
-      );
-    }
-
-    final loadCapacity = getDoubleValue(
-      kendaraan['kapasitas_muatan'],
-      defaultValue: 10.0,
-    );
-
-    double actualLoad = 0.0;
-
-    if (perjalanan.isNotEmpty) {
-      final lastPerjalanan = perjalanan.last;
-
-      actualLoad = getDoubleValue(
-        lastPerjalanan['total_jumlah_muatan'],
-        defaultValue: 0.0,
-      );
-
-      if (actualLoad == 0.0 && lastPerjalanan['muatan'] is List) {
-        final List muatanList = lastPerjalanan['muatan'];
-
-        for (final item in muatanList) {
-          if (item is Map<String, dynamic>) {
-            actualLoad += getDoubleValue(
-              item['jumlah_muatan'],
-              defaultValue: 0.0,
-            );
-          }
-        }
-      }
-    }
-
-    final lastService = service.isNotEmpty ? service.last : <String, dynamic>{};
-
-    final brakeCondition = getDoubleValue(
-      lastService['brake_condition'],
-      defaultValue: 50.0,
-    );
-
-    final batteryStatus = getDoubleValue(
-      lastService['battery_status'],
-      defaultValue: 50.0,
-    );
-
-    final tirePressure = getDoubleValue(
-      lastService['tire_preasure'],
-      defaultValue: 35.0,
-    );
-
-    final fuelConsumption = getDoubleValue(
-      lastService['fuel_consumtion'],
-      defaultValue: 12.0,
-    );
-
     final vibrationLevel = getDoubleValue(
-      lastService['vibration_level'],
-      defaultValue: 3.0,
+      service?['vibration_level'],
+      defaultValue: 0.0,
     );
-
     final oilQuality = getDoubleValue(
-      lastService['oil_quality'],
-      defaultValue: 80.0,
+      service?['oil_quality'],
+      defaultValue: 0.0,
     );
 
-    final kecelakaan =
-        lastService['kecelakaan']?.toString().toLowerCase() ?? '';
+    final kecelakaan = service?['kecelakaan']?.toString().toLowerCase() ?? '';
     final catatanKerusakan =
-        lastService['catatan_kerusakan']?.toString().toLowerCase() ?? '';
-
+        service?['catatan_kerusakan']?.toString().toLowerCase() ?? '';
     final failureHistory =
         kecelakaan == 'ya' ||
-            catatanKerusakan != '-' && catatanKerusakan.isNotEmpty
+            (catatanKerusakan != '-' && catatanKerusakan.isNotEmpty)
         ? 1
         : 0;
-
-    final anomaliesDetected = service.isNotEmpty ? 1 : 0;
-
-    final routeUrban = 1;
-    final routeRural = 0;
 
     return {
       'Record_No': recordNo,
@@ -216,180 +153,107 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
       'Usage_Hours': usageHours,
       'Load_Capacity': loadCapacity,
       'Actual_Load': actualLoad,
-
-      'Engine_Temperature': 120,
+      'Engine_Temperature': 50,
       'Tire_Pressure': tirePressure,
       'Fuel_Consumption': fuelConsumption,
       'Battery_Status': batteryStatus,
       'Vibration_Levels': vibrationLevel,
       'Oil_Quality': oilQuality,
-
       'Failure_History': failureHistory,
-      'Anomalies_Detected': anomaliesDetected,
+      'Anomalies_Detected': service != null ? 1 : 0,
       'Delivery_Times': 60,
-
       'Elapsed_Days': elapsedDays,
-      'Days_Since_Last_Observation': daysSinceLastObservation,
-      'Observation_Month': endDate.month,
-      'Observation_DayOfYear': dayOfYear(endDate),
-
-      'Route_Info_Rural': routeRural,
-      'Route_Info_Urban': routeUrban,
-
+      'Days_Since_Last_Observation': 1,
+      'Observation_Month': tanggal.month,
+      'Observation_DayOfYear': dayOfYear(tanggal),
+      'Route_Info_Rural': 0,
+      'Route_Info_Urban': 1,
       'Brake_Condition_Good': brakeCondition >= 80 ? 1 : 0,
       'Brake_Condition_Poor': brakeCondition <= 40 ? 1 : 0,
-
-      // Tambahan untuk model Maintenance Type
       'Weather_Conditions_Rainy': 0,
       'Weather_Conditions_Snowy': 0,
       'Weather_Conditions_Windy': 0,
-
       'Road_Conditions_Rural': 0,
       'Road_Conditions_Urban': 1,
-    };
-  }
 
-  Map<String, dynamic> cleanObservationForApi(Map<String, dynamic> data) {
-    return {
-      'Record_No': data['Record_No'],
-      'Year_of_Manufacture': data['Year_of_Manufacture'],
-      'Usage_Hours': data['Usage_Hours'],
-      'Load_Capacity': data['Load_Capacity'],
-      'Actual_Load': data['Actual_Load'],
-      'Engine_Temperature': data['Engine_Temperature'],
-      'Tire_Pressure': data['Tire_Pressure'],
-      'Fuel_Consumption': data['Fuel_Consumption'],
-      'Battery_Status': data['Battery_Status'],
-      'Vibration_Levels': data['Vibration_Levels'],
-      'Oil_Quality': data['Oil_Quality'],
-      'Failure_History': data['Failure_History'],
-      'Anomalies_Detected': data['Anomalies_Detected'],
-      'Delivery_Times': data['Delivery_Times'],
-      'Elapsed_Days': data['Elapsed_Days'],
-      'Days_Since_Last_Observation': data['Days_Since_Last_Observation'],
-      'Observation_Month': data['Observation_Month'],
-      'Observation_DayOfYear': data['Observation_DayOfYear'],
-      'Route_Info_Rural': data['Route_Info_Rural'],
-      'Route_Info_Urban': data['Route_Info_Urban'],
-      'Brake_Condition_Good': data['Brake_Condition_Good'],
-      'Brake_Condition_Poor': data['Brake_Condition_Poor'],
-
-      // Tambahan untuk prediksi Maintenance Type
-      'Weather_Conditions_Rainy': data['Weather_Conditions_Rainy'] ?? 0,
-      'Weather_Conditions_Snowy': data['Weather_Conditions_Snowy'] ?? 0,
-      'Weather_Conditions_Windy': data['Weather_Conditions_Windy'] ?? 0,
-      'Road_Conditions_Rural': data['Road_Conditions_Rural'] ?? 0,
-      'Road_Conditions_Urban': data['Road_Conditions_Urban'] ?? 1,
+      'Tanggal_Perjalanan': tanggal.toIso8601String(),
+      'Jarak_KM': jarakKm,
+      'Total_Muatan': actualLoad,
+      'Uang_Bensin': uangBensin,
     };
   }
 
   Future<void> runPrediction() async {
     try {
-      setState(() {
-        isPredicting = true;
-      });
+      setState(() => isPredicting = true);
 
-      final startDate = DateTime(2025, 1, 1);
-      final endDate = DateTime(2026, 12, 31);
+      final startDate = DateTime(2000, 1, 1);
+      final endDate = DateTime(2100, 12, 31);
 
       final perjalanan = await rangeService.getPerjalananByRange(
         kendaraanId: widget.kendaraanId,
         startDate: startDate,
         endDate: endDate,
       );
+      print("Jumlah perjalanan: ${perjalanan.length}");
 
       final service = await rangeService.getServiceByRange(
         kendaraanId: widget.kendaraanId,
         startDate: startDate,
         endDate: endDate,
       );
+      print("Jumlah service: ${service.length}");
 
       if (perjalanan.isEmpty && service.isEmpty) {
-        throw Exception(
-          "Tidak ada data perjalanan/service pada 7 hari terakhir.",
-        );
+        throw Exception("Tidak ada data perjalanan/service.");
       }
 
-      final observasiRef = FirebaseFirestore.instance
-          .collection('kendaraan')
-          .doc(widget.kendaraanId)
-          .collection('observasi_mingguan');
-
-      final oldSnapshot = await observasiRef
-          .orderBy('tanggal_akhir', descending: true)
-          .limit(1)
-          .get();
-
-      int recordNo = 1;
-      int elapsedDays = 0;
-      int daysSinceLastObservation = 0;
-
-      if (oldSnapshot.docs.isNotEmpty) {
-        final lastData = oldSnapshot.docs.first.data();
-
-        final lastRecordNo = lastData['Record_No'] ?? 0;
-        recordNo = (lastRecordNo as num).toInt() + 1;
-
-        final firstSnapshot = await observasiRef
-            .orderBy('tanggal_akhir')
-            .limit(1)
-            .get();
-
-        if (firstSnapshot.docs.isNotEmpty) {
-          final firstTanggal = firstSnapshot.docs.first.data()['tanggal_akhir'];
-
-          if (firstTanggal is Timestamp) {
-            final firstDate = firstTanggal.toDate();
-            elapsedDays = endDate.difference(firstDate).inDays;
+      Map<String, dynamic>? getServiceTerakhir(DateTime tanggalPerjalanan) {
+        Map<String, dynamic>? hasil;
+        for (final s in service) {
+          final tanggalService = (s['tanggal_perbaikan'] as Timestamp).toDate();
+          if (!tanggalService.isAfter(tanggalPerjalanan)) {
+            hasil = s;
+          } else {
+            break;
           }
         }
-
-        final lastTanggal = lastData['tanggal_akhir'];
-
-        if (lastTanggal is Timestamp) {
-          final lastDate = lastTanggal.toDate();
-          daysSinceLastObservation = endDate.difference(lastDate).inDays;
-        }
+        return hasil;
       }
 
-      final observation = buildWeeklyObservation(
-        kendaraan: widget.kendaraan,
-        perjalanan: perjalanan,
-        service: service,
-        startDate: startDate,
-        endDate: endDate,
-        recordNo: recordNo,
-        elapsedDays: elapsedDays,
-        daysSinceLastObservation: daysSinceLastObservation,
-      );
+      final List<Map<String, dynamic>> observations = [];
 
-      await observasiRef.add({
-        ...observation,
-        'tanggal_mulai': Timestamp.fromDate(startDate),
-        'tanggal_akhir': Timestamp.fromDate(endDate),
-        'created_at': FieldValue.serverTimestamp(),
-      });
+      for (int i = 0; i < perjalanan.length; i++) {
+        final p = perjalanan[i];
+        final tanggalPerjalanan = (p['tanggal'] as Timestamp).toDate();
+        final serviceTerakhir = getServiceTerakhir(tanggalPerjalanan);
 
-      final lastThreeSnapshot = await observasiRef
-          .orderBy('tanggal_akhir', descending: true)
-          .limit(3)
-          .get();
-
-      final observations = lastThreeSnapshot.docs
-          .map((doc) => cleanObservationForApi(doc.data()))
-          .toList()
-          .reversed
-          .toList();
-
-      if (observations.isEmpty) {
-        throw Exception("Data observasi kosong.");
+        final obs = buildObservation(
+          kendaraan: widget.kendaraan,
+          perjalanan: p,
+          service: serviceTerakhir,
+          recordNo: i + 1,
+          elapsedDays: i,
+        );
+        observations.add(obs);
       }
 
+
+      for (int i = 0; i < observations.length; i++) {
+        final obs = observations[i];
+      }
+
+
+      if (observations.length < 3) {
+        throw Exception(
+          "Data perjalanan kurang: ${observations.length} observasi. "
+          "Butuh minimal 3 perjalanan agar model LSTM bisa membuat prediksi.",
+        );
+      }
       final result = await rulApiService.predictRul(observations);
 
       final prediksiRulHari = (result['prediksi_rul_hari'] as num).toDouble();
       final status = result['status'].toString();
-
       final prediksiKerusakan =
           result['prediksi_maintenance']?.toString() ?? '-';
 
@@ -405,6 +269,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
             'last_prediction_start': Timestamp.fromDate(startDate),
             'last_prediction_end': Timestamp.fromDate(endDate),
           }, SetOptions(merge: true));
+
       await FirebaseFirestore.instance
           .collection('kendaraan')
           .doc(widget.kendaraanId)
@@ -423,7 +288,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Prediksi berhasil: ${prediksiRulHari.toStringAsFixed(2)} hari - $status - $prediksiKerusakan",
+            "Prediksi berhasil: ${prediksiRulHari.toStringAsFixed(2)} hari — $status — $prediksiKerusakan",
           ),
         ),
       );
@@ -431,24 +296,15 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
       setState(() {});
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Gagal prediksi: $e")));
     } finally {
-      if (mounted) {
-        setState(() {
-          isPredicting = false;
-        });
-      }
+      if (mounted) setState(() => isPredicting = false);
     }
   }
 
-  Widget detailItem(
-    String title,
-    dynamic value, {
-    Color valueColor = Colors.black,
-  }) {
+  Widget detailItem(String title, dynamic value) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -490,7 +346,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
           .snapshots(),
       builder: (context, snapshot) {
         final data = snapshot.data?.data() as Map<String, dynamic>?;
-
         final estimasi = data?['estimasi_masa_pakai'];
         final status = data?['status_rul'];
         final prediksiKerusakan = data?['prediksi_kerusakan'];
@@ -515,14 +370,11 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
                 ),
               ),
               const SizedBox(height: 12),
-
               Text(
-                "Estimasi Sisa Pakai: ${estimasi?.round() ?? 0} hari",
+                "Estimasi Sisa Pakai: ${estimasi != null ? (estimasi as num).round() : 0} hari",
                 style: const TextStyle(fontSize: 14, color: Colors.black),
               ),
-
               const SizedBox(height: 6),
-
               Text(
                 "Status: ${status?.toString() ?? "-"}",
                 style: TextStyle(
@@ -531,9 +383,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 12),
-
               const Text(
                 "Prediksi Kerusakan/Perawatan:",
                 style: TextStyle(
@@ -542,9 +392,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
                   color: Colors.black,
                 ),
               ),
-
               const SizedBox(height: 6),
-
               Text(
                 prediksiKerusakan?.toString() ?? "-",
                 style: const TextStyle(
@@ -553,11 +401,7 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
-              const SizedBox(height: 6),
-
               const SizedBox(height: 14),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -615,7 +459,6 @@ class _DetailFleetPageState extends State<DetailFleetPage> {
         child: Column(
           children: [
             predictionCard(),
-
             detailItem("ID Kendaraan", widget.kendaraanId),
             detailItem("Plat Kendaraan", kendaraan['plat_kendaraan']),
             detailItem("Model Kendaraan", kendaraan['model_kendaraan']),

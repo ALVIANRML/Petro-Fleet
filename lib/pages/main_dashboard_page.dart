@@ -60,7 +60,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    getUserData(); // 🔥 ini yang kamu lupa
+    getUserData(); 
   }
 
   @override

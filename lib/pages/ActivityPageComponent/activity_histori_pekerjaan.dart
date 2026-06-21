@@ -16,7 +16,7 @@ class _HistoryPekerjaanPageState extends State<HistoryPekerjaanPage> {
   String searchQuery = '';
   DateTime? selectedDate;
 
-  // Helper untuk format Timestamp ke string
+
   String formatTanggal(dynamic value) {
     if (value == null) return '-';
     if (value is Timestamp) {
@@ -27,7 +27,7 @@ class _HistoryPekerjaanPageState extends State<HistoryPekerjaanPage> {
     return '-';
   }
 
-  // Pastikan GPS aktif sebelum detail perjalanan
+
   Future<bool> _ensureLocationReady(BuildContext context) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -47,7 +47,7 @@ class _HistoryPekerjaanPageState extends State<HistoryPekerjaanPage> {
     return true;
   }
 
-  // Ambil data perjalanan dari Firestore berdasarkan id_pengemudi
+  
   Future<List<Map<String, dynamic>>> getPerjalananData() async {
     if (user == null) return [];
 
@@ -111,7 +111,6 @@ class _HistoryPekerjaanPageState extends State<HistoryPekerjaanPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Date picker
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -143,7 +142,6 @@ class _HistoryPekerjaanPageState extends State<HistoryPekerjaanPage> {
             ),
             const SizedBox(height: 16),
 
-            // Header tabel
             Row(
               children: const [
                 Expanded(
@@ -194,7 +192,6 @@ class _HistoryPekerjaanPageState extends State<HistoryPekerjaanPage> {
             ),
             const Divider(color: Colors.white),
 
-            // List data perjalanan
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: getPerjalananData(),

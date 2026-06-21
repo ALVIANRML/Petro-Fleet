@@ -13,7 +13,6 @@ class RupiahInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    // ambil angka saja
     String digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
 
     if (digits.isEmpty) {

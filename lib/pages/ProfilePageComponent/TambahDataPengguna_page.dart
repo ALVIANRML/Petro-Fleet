@@ -133,7 +133,6 @@ class _FormAddProfileState extends State<FormAddProfile> {
             ),
             const SizedBox(height: 30),
 
-            // Tombol Submit
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -166,7 +165,7 @@ class _FormAddProfileState extends State<FormAddProfile> {
                   );
 
                   if (confirm == true) {
-                    registerFunction(context); // ✅ pakai context halaman (aman)
+                    registerFunction(context);
                   }
                 },
                 child: const Text(

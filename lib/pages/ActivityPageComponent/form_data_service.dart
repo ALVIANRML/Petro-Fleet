@@ -56,7 +56,6 @@ class _FormDataServiceState extends State<FormDataService> {
     if (nilai == 50) return 'Sedang';
     if (nilai == 0) return 'Buruk';
 
-    // Antisipasi kalau data lama masih bentuk String
     if (nilai == 'Baik') return 'Baik';
     if (nilai == 'Sedang') return 'Sedang';
     if (nilai == 'Buruk') return 'Buruk';
@@ -89,7 +88,6 @@ class _FormDataServiceState extends State<FormDataService> {
         'biaya_service': int.parse(biayaController.text.replaceAll('.', '')),
         'kecelakaan': selectedKecelakaan,
 
-        // Data untuk ML / kondisi kendaraan
         'tire_preasure': kondisiToInt(selectedKondisiBan),
         'brake_condition': kondisiToInt(selectedKondisiRem),
         'battery_status': kondisiToInt(selectedKondisiBaterai),
@@ -158,7 +156,6 @@ class _FormDataServiceState extends State<FormDataService> {
 
       selectedKecelakaan = data['kecelakaan'];
 
-      // Pakai field yang sekarang disimpan ke Firestore
       selectedKondisiBan = intToKondisi(data['tire_preasure']);
       selectedKondisiRem = intToKondisi(data['brake_condition']);
       selectedKondisiBaterai = intToKondisi(data['battery_status']);

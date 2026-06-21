@@ -71,7 +71,7 @@ class LoginPageState extends State<LoginPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Colors.blue, // border saat fokus
+                        color: Colors.blue, 
                         width: 2,
                       ),
                     ),

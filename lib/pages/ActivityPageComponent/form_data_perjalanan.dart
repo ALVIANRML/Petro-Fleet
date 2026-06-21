@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -54,7 +52,7 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
   Stream<List<String>> getSupir() {
     return FirebaseFirestore.instance
         .collection('users')
-        .where('posisi', isEqualTo: 'Sopir') // ⬅️ filter di sini
+        .where('posisi', isEqualTo: 'Sopir')
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -341,7 +339,7 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
               },
             ),
             SizedBox(height: 16),
-            // Plat Kendaraan
+
             const Text("Plat Kendaraan", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             StreamBuilder<QuerySnapshot>(
@@ -466,7 +464,6 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
 
             const SizedBox(height: 16),
 
-            // lokasi awal muatan
             const Text(
               "Lokasi Awal Muatan",
               style: TextStyle(color: Colors.white),
@@ -479,7 +476,6 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
             ),
             const SizedBox(height: 16),
 
-            // Tujuan muatan
             const Text("Tujuan Muatan", style: TextStyle(color: Colors.white)),
             const SizedBox(height: 8),
             TextField(
@@ -489,7 +485,7 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
             ),
             const SizedBox(height: 16),
 
-            // Upah Driver
+
             const Text(
               "Upah Driver (Rp)",
               style: TextStyle(color: Colors.white),
@@ -508,7 +504,7 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
             ),
             const SizedBox(height: 16),
 
-            // Uang Bensin
+            
             const Text(
               "Uang Bensin (Rp)",
               style: TextStyle(color: Colors.white),
@@ -527,7 +523,7 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
             ),
             const SizedBox(height: 16),
 
-            // Tanggal Berangkat
+            
             const Text(
               "Tanggal Keberangkatan",
               style: TextStyle(color: Colors.white),
@@ -560,7 +556,7 @@ class _FormDataPerjalananState extends State<FormDataPerjalanan> {
             ),
             const SizedBox(height: 30),
 
-            // Tombol Submit
+            
             SizedBox(
               width: double.infinity,
               height: 50,

@@ -31,7 +31,7 @@ class _FormEditProfileState extends State<FormEditProfile> {
 
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(user.uid) // 🔥 pakai UID
+          .doc(user.uid)
           .update({'nama': namaController.text});
 
       if (!mounted) return;
@@ -40,7 +40,7 @@ class _FormEditProfileState extends State<FormEditProfile> {
         context,
       ).showSnackBar(const SnackBar(content: Text("Berhasil update nama")));
 
-      Navigator.pop(context); // balik ke profile
+      Navigator.pop(context); 
     } catch (e) {
       print("Error update nama: $e");
 

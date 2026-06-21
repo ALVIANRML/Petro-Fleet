@@ -45,7 +45,6 @@ class ActivityPage extends StatelessWidget {
               children: [
                 const SizedBox(height: 40),
 
-                // 🔥 ADMIN
                 if (role == 'Admin') ...[
                   ActivityCard(
                     image: "assets/img/image_data_perjalanan.png",
@@ -77,7 +76,6 @@ class ActivityPage extends StatelessWidget {
                   ),
                 ],
 
-                // 🔥 DRIVER
                 if (role == 'Sopir') ...[
                   ActivityCard(
                     image: "assets/img/image_list_pekerjaan.png",
@@ -146,7 +144,7 @@ class ActivityCard extends StatelessWidget {
               fit: BoxFit.cover,
               cacheWidth: 600,
             ),
-            // ignore: deprecated_member_use
+    
             Container(height: 150, color: Colors.white.withOpacity(0.6)),
 
             Positioned(

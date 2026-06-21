@@ -17,20 +17,13 @@ class _ImportExcelPageState extends State<ImportExcelPage> {
   bool isLoading = false;
   String hasilImport = "";
 
-  // GANTI DENGAN ID KENDARAAN DI FIREBASE
   final String kendaraanId = "BPsD35i9Jy1PlaIiRYBc";
 
-  // GANTI DENGAN ID SOPIR / PENGEMUDI DI FIREBASE
+
   final String idPengemudi = "rMgyV4UXZdPMsO6sRCNQnVw0bFg1";
 
-  // Karena kamu ingin hasilnya seperti screenshot:
-  // berat_kg = jumlah_muatan
-  // Kalau nanti mau benar-benar konversi pelumas, ubah jadi liter * 0.88
   double hitungBeratKg(num totalLiter) {
     return totalLiter.toDouble();
-
-    // Kalau mau konversi pelumas yang lebih realistis:
-    // return totalLiter * 0.88;
   }
 
   num parseAngka(dynamic value) {
@@ -120,19 +113,19 @@ class _ImportExcelPageState extends State<ImportExcelPage> {
 
       final Map<String, Map<String, dynamic>> groupData = {};
 
-      // index 0 = header
+   
       for (int i = 1; i < rows.length; i++) {
         final row = rows[i];
 
-        final group = getCellValue(row, 0); // Kolom A
-        final tanggalText = getCellValue(row, 1); // Kolom B
-        final jenisMuatan = getCellValue(row, 2); // Kolom C
-        final qty = parseAngka(getCellValue(row, 3)); // Kolom D
-        final liter = parseAngka(getCellValue(row, 4)); // Kolom E
-        final tujuanMuatan = getCellValue(row, 6); // Kolom G
-        final lokasiAwal = getCellValue(row, 7); // Kolom H
-        final jarak = parseAngka(getCellValue(row, 8)); // Kolom I
-        final jam = parseAngka(getCellValue(row, 9)); // Kolom J
+        final group = getCellValue(row, 0);
+        final tanggalText = getCellValue(row, 1); 
+        final jenisMuatan = getCellValue(row, 2); 
+        final qty = parseAngka(getCellValue(row, 3)); 
+        final liter = parseAngka(getCellValue(row, 4)); 
+        final tujuanMuatan = getCellValue(row, 6); 
+        final lokasiAwal = getCellValue(row, 7); 
+        final jarak = parseAngka(getCellValue(row, 8)); 
+        final jam = parseAngka(getCellValue(row, 9)); 
 
         if (group.isEmpty && tanggalText.isEmpty && jenisMuatan.isEmpty) {
           continue;

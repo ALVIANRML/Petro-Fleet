@@ -124,10 +124,9 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
       return false;
     }
 
-    return true; // Semua OK
+    return true;
   }
 
-  // ─── AMBIL DATA PERJALANAN ───────────────────────────────────────────────────
   Future<List<Map<String, dynamic>>> getPerjalananData(String userId) async {
     final snapshot = await FirebaseFirestore.instance
         .collectionGroup('perjalanan')
@@ -247,7 +246,7 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ── TAB BAR ──────────────────────────────────────────────
+           
             Row(
               children: [
                 _buildTabButton("In Transit", "in_transit"),
@@ -261,7 +260,7 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
             ),
             const SizedBox(height: 16),
 
-            // ── SEARCH ───────────────────────────────────────────────
+           
             TextField(
               onChanged: (value) {
                 setState(() {
@@ -283,7 +282,7 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
             ),
             const SizedBox(height: 10),
 
-            // ── DATE PICKER ───────────────────────────────────────────
+  
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -315,7 +314,7 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
             ),
             const SizedBox(height: 20),
 
-            // ── HEADER TABEL ──────────────────────────────────────────
+           
             Row(
               children: const [
                 Expanded(
@@ -366,7 +365,7 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
             ),
             const Divider(color: Colors.white),
 
-            // ── LIST DATA ─────────────────────────────────────────────
+          
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 key: ValueKey(activeTab),
@@ -482,7 +481,7 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                                   child: Text(
                                     formatTanggal(
                                       data['tanggal'],
-                                    ), // <-- pakai helper
+                                    ), 
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(color: Colors.white),
                                   ),
@@ -502,7 +501,7 @@ class ListPekerjaanPageState extends State<ListPekerjaanPage> {
                                       Icons.arrow_forward,
                                       color: Colors.white,
                                     ),
-                                    // ─── NAVIGASI KE DETAIL — CEK GPS DULU ───
+                     
                                     onPressed: () async {
                                       final locationReady =
                                           await _ensureLocationReady(context);

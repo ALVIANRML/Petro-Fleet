@@ -17,10 +17,10 @@ void main() async {
   await initializeService();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // ✅ minta izin notif (WAJIB Android 13+)
+  
   await Permission.notification.request();
 
-  // ✅ INIT NOTIF (INI YANG KAMU BELUM ADA)
+
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -35,7 +35,7 @@ void main() async {
     settings: initializationSettings,
   );
 
-  // ✅ baru init background service
+
 
   runApp(const MyApp());
 }
@@ -50,7 +50,7 @@ Future<void> initializeService() async {
       autoStart: false,
     ),
     iosConfiguration: IosConfiguration(
-      // 🔥 TAMBAH INI
+
       onForeground: onStart,
       onBackground: onIosBackground,
     ),
@@ -60,7 +60,6 @@ Future<void> initializeService() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

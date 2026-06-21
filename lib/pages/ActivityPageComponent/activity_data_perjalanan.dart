@@ -12,7 +12,7 @@ class DataPerjalananPage extends StatefulWidget {
 }
 
 class DataPerjalananPageState extends State<DataPerjalananPage> {
-  /// 0 = in_transit, 1 = on_trip, 2 = completed
+
   int selectedTab = 0;
   DateTime? selectedDate;
   String searchQuery = '';
@@ -124,7 +124,6 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
           children: [
             const SizedBox(height: 10),
 
-            // Search bar
             TextField(
               onChanged: (value) {
                 setState(() {
@@ -147,7 +146,6 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
 
             const SizedBox(height: 10),
 
-            // Tombol Tambah Data
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -178,7 +176,6 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
 
             const SizedBox(height: 10),
 
-            // Tombol Pilih Tanggal
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -211,7 +208,6 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
 
             const SizedBox(height: 10),
 
-            // ── Toggle 3 tab: In Transit | On Trip | Completed ──
             Row(
               children: [
                 _tabButton(
@@ -239,7 +235,6 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
 
             const SizedBox(height: 20),
 
-            // Header tabel
             const Row(
               children: [
                 Expanded(
@@ -291,7 +286,6 @@ class DataPerjalananPageState extends State<DataPerjalananPage> {
 
             const Divider(color: Colors.white),
 
-            // List data dari Firestore
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: getPerjalananData(),

@@ -166,13 +166,12 @@ class BarChartWidget extends StatelessWidget {
               topLeft: Radius.circular(3),
               topRight: Radius.circular(3),
             ),
-            // Gradient hijau seperti di gambar
             gradient: const LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
               colors: [
-                Color(0xFF1B5E20), // hijau gelap di bawah
-                Color(0xFF4CAF50), // hijau terang di atas
+                Color(0xFF1B5E20),
+                Color(0xFF4CAF50),
               ],
             ),
           ),

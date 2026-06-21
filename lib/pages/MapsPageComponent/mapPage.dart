@@ -205,7 +205,6 @@ class _MapPageState extends State<MapPage> {
       setState(() {
         currentLocation = lokasiFirestore;
 
-        // kirim data ke background
         if (kendaraanId != null && perjalananId != null) {
           final service = FlutterBackgroundService();
 
@@ -242,7 +241,7 @@ class _MapPageState extends State<MapPage> {
           ),
           MarkerLayer(
             markers: currentLocation == null
-                ? [] // ⬅️ kalau null, tidak ada marker
+                ? [] 
                 : [
                     Marker(
                       point: currentLocation!,
@@ -274,7 +273,6 @@ void onStart(ServiceInstance service) async {
   String? kendaraanId;
   String? perjalananId;
 
-  // nerima data dari UI
   service.on('setData').listen((event) {
     kendaraanId = event?['kendaraanId'];
     perjalananId = event?['perjalananId'];

@@ -315,7 +315,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
       'status': kStatusOnTrip,
       'approved_by_driver': true,
 
-      // Waktu sopir approve / mulai perjalanan
+  
       'driver_approved_at': driverApprovedAt,
       'waktu_berangkat': driverApprovedAt,
 
@@ -327,7 +327,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
   }
 
   Future<void> _approveCompleted(BuildContext context) async {
-    // Konfirmasi admin
+  
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -348,7 +348,6 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
 
     if (confirm != true) return;
 
-    // Validasi input muatan & tanggal tiba
     if (muatanDiterimaController.text.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -375,7 +374,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
     final driverApprovedAt = perjalananData['driver_approved_at'];
     final adminCompletedAt = Timestamp.now();
 
-    // Hitung usage hours
+
     double usageHours = 0;
     if (driverApprovedAt is Timestamp) {
       final startTime = driverApprovedAt.toDate();
@@ -385,7 +384,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
       );
     }
 
-    // Ambil posisi terakhir dari tracking
+
     final trackingSnapshot = await docRef
         .collection('tracking')
         .orderBy('timestamp', descending: true)
@@ -398,7 +397,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
       lastPosition = parseLocation(pos);
     }
 
-    // Update dokumen perjalanan
+
     await docRef.update({
       'status': kStatusCompleted,
       'approved_arrival': true,
@@ -416,7 +415,7 @@ class _DetailPerjalananPageState extends State<DetailPerjalananPage> {
             }
           : getLokasiBerangkat(
               perjalananData,
-            ), // fallback kalau tracking kosong
+            ), 
     });
 
     if (context.mounted) Navigator.pop(context, true);

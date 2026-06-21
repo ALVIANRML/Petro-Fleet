@@ -55,7 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== PROFIL =====
+    
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -132,7 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       builder: (context) => const FormEditProfile(),
                     ),
                   ).then((_) {
-                    getUserData(); // 🔥 reload data setelah balik
+                    getUserData(); 
                   });
                 },
               ),
@@ -164,33 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
               ),
-            // if (jabatan != "Sopir")
-            //   Container(
-            //     margin: const EdgeInsets.symmetric(vertical: 6),
-            //     decoration: BoxDecoration(
-            //       color: const Color(0xFFD9D9D9),
-            //       borderRadius: BorderRadius.circular(12),
-            //     ),
-            //     child: ListTile(
-            //       leading: const Icon(Icons.settings, color: Colors.black),
-            //       title: const Text(
-            //         "Settings",
-            //         style: TextStyle(
-            //           color: Colors.black,
-            //           fontWeight: FontWeight.bold,
-            //         ),
-            //       ),
-            //       trailing: const Icon(Icons.arrow_forward, size: 16),
-            //       onTap: () {
-            //         Navigator.push(
-            //           context,
-            //           MaterialPageRoute(
-            //             builder: (context) => const FormSettingProfile(),
-            //           ),
-            //         );
-            //       },
-            //     ),
-            //   ),
+           
             Container(
               margin: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(
@@ -229,7 +203,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         actions: [
                           TextButton(
                             onPressed: () {
-                              Navigator.pop(context); // tutup dialog
+                              Navigator.pop(context);
                             },
                             child: const Text(
                               "Cancel",

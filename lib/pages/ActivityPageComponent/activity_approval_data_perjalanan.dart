@@ -60,7 +60,7 @@ class _ApprovalPerjalananPageState extends State<ApprovalPerjalananPage> {
             ),
             Text('Pertamina Medan', style: TextStyle(color: Colors.white)),
             Padding(
-              padding: const EdgeInsets.only(left: 30), // geser ke kanan
+              padding: const EdgeInsets.only(left: 30),
               child: Icon(Icons.arrow_downward, color: Colors.white),
             ),
             Text(
@@ -189,7 +189,6 @@ class _ApprovalPerjalananPageState extends State<ApprovalPerjalananPage> {
       hintText: hint,
       hintStyle: const TextStyle(
         color: Color(0xFF000000),
-      // ignore: deprecated_member_use
       ).copyWith(color: Color(0xFF000000).withOpacity(0.5)),
       filled: true,
       fillColor: const Color(0xFFD9D9D9),

@@ -10,7 +10,6 @@ class FirebaseRangeService {
   }) async {
     final start = Timestamp.fromDate(startDate);
 
-    // endDate dibuat +1 hari agar tanggal akhir ikut terambil penuh
     final end = Timestamp.fromDate(
       DateTime(endDate.year, endDate.month, endDate.day + 1),
     );
@@ -23,6 +22,12 @@ class FirebaseRangeService {
         .where('tanggal', isLessThan: end)
         .orderBy('tanggal')
         .get();
+    print("Jumlah data perjalanan: ${snapshot.docs.length}");
+
+    for (var doc in snapshot.docs) {
+      print("ID: ${doc.id}");
+      print(doc.data());
+    }
 
     return snapshot.docs.map((doc) {
       return {'id': doc.id, ...doc.data()};
@@ -49,8 +54,36 @@ class FirebaseRangeService {
         .orderBy('tanggal_perbaikan')
         .get();
 
+    print("Jumlah data service: ${snapshot.docs.length}");
+
+    for (var doc in snapshot.docs) {
+      print("ID: ${doc.id}");
+      print(doc.data());
+    }
+
     return snapshot.docs.map((doc) {
       return {'id': doc.id, ...doc.data()};
     }).toList();
   }
 }
+
+Map<String, dynamic>? getLastServiceBeforeDate(
+  DateTime perjalananDate,
+  List<Map<String, dynamic>> services,
+) {
+  Map<String, dynamic>? selectedService;
+
+  for (final service in services) {
+    final serviceDate = (service['tanggal_perbaikan'] as Timestamp).toDate();
+
+    if (serviceDate.isBefore(perjalananDate) ||
+        serviceDate.isAtSameMomentAs(perjalananDate)) {
+      selectedService = service;
+    } else {
+      break;
+    }
+  }
+
+  return selectedService;
+}
+

@@ -22,7 +22,6 @@ class _MapPageAdminState extends State<MapPageAdmin> {
     loadAllKendaraanPosition();
   }
 
-  // ===== Helper Functions =====
   LatLng? parseLocation(dynamic lokasi) {
     if (lokasi is GeoPoint) return LatLng(lokasi.latitude, lokasi.longitude);
     if (lokasi is Map) {
@@ -65,7 +64,6 @@ class _MapPageAdminState extends State<MapPageAdmin> {
     return parseLocation(trackingSnapshot.docs.first.data()['posisi']);
   }
 
-  // ===== Load Kendaraan =====
   Future<void> loadAllKendaraanPosition() async {
     try {
       final kendaraanSnapshot = await FirebaseFirestore.instance
@@ -78,7 +76,6 @@ class _MapPageAdminState extends State<MapPageAdmin> {
         final kendaraanData = kendaraanDoc.data();
         final platKendaraan = kendaraanData['plat_kendaraan'] ?? '-';
 
-        // Ambil perjalanan aktif (on_trip) pertama
         final activeTripSnapshot = await kendaraanDoc.reference
             .collection('perjalanan')
             .where('status', isEqualTo: 'on_trip')
@@ -90,7 +87,7 @@ class _MapPageAdminState extends State<MapPageAdmin> {
         if (activeTripSnapshot.docs.isNotEmpty) {
           perjalananDoc = activeTripSnapshot.docs.first;
         } else {
-          // Jika tidak ada perjalanan on_trip, ambil perjalanan terbaru
+
           final latestTripSnapshot = await kendaraanDoc.reference
               .collection('perjalanan')
               .orderBy('created_at', descending: true)
@@ -156,7 +153,6 @@ class _MapPageAdminState extends State<MapPageAdmin> {
     }
   }
 
-  // ===== UI Helper =====
   Color getMarkerColor(String status) {
     if (status == 'on_trip') return Colors.blue;
     if (status == 'completed') return Colors.green;
@@ -213,7 +209,6 @@ class _MapPageAdminState extends State<MapPageAdmin> {
     );
   }
 
-  // ===== Build Map =====
   @override
   Widget build(BuildContext context) {
     const defaultLocation = LatLng(3.595196, 98.672223);
